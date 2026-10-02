@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {getDaySchedule,getServingStatus,formatClock} from './dining-hours.mjs';
+const at=(iso)=>new Date(iso);
+test('C9 Tuesday dinner transitions into late night',()=>{const dinner=getServingStatus('2026-10-06','40',at('2026-10-07T01:15:00Z'));assert.equal(dinner.state,'open');assert.equal(dinner.label,'Dinner');assert.equal(dinner.end,'20:00');assert.equal(dinner.next.name,'Late Night');});
+test('C9 Monday has no late night',()=>{const s=getDaySchedule('2026-10-05','40');assert.equal(s.at(-1).name,'Dinner');});
+test('C9 Saturday starts with brunch',()=>assert.equal(getDaySchedule('2026-10-03','40')[0].name,'Brunch'));
+test('Cowell and Oakes have Sunday late night',()=>{assert.equal(getDaySchedule('2026-10-04','05').at(-1).name,'Late Night');assert.equal(getDaySchedule('2026-10-04','30').at(-1).name,'Late Night');});
+test('Crown and Kresge are closed on regular weekend schedule',()=>{assert.deepEqual(getDaySchedule('2026-10-03','20'),[]);assert.deepEqual(getDaySchedule('2026-10-04','25'),[]);});
+test('Kresge weekday dinner ends at 7 PM',()=>assert.equal(getDaySchedule('2026-10-05','25').at(-1).end,'19:00'));
+test('continuous dining is explicitly limited',()=>{const s=getServingStatus('2026-10-06','40',at('2026-10-06T18:10:00Z'));assert.equal(s.state,'limited');assert.equal(s.label,'Continuous Dining');});
+test('unknown cafe hours are not guessed',()=>assert.equal(getServingStatus('2026-10-02','23').state,'unknown'));
+test('clock formatting is readable',()=>{assert.equal(formatClock('08:00'),'8 AM');assert.equal(formatClock('11:30'),'11:30 AM');assert.equal(formatClock('20:00'),'8 PM');});
