@@ -12,6 +12,8 @@ Open http://127.0.0.1:3210. Run tests with `node --test`.
 
 ## What works
 
+- Live all-hall menu viewer with vegetarian filter, food search, and protein/calorie sorting.
+
 - Plans C9 main meals around busy blocks, serving windows, and a travel buffer.
 - Filters verified date-specific vegetarian foods, egg/dairy preferences, and named allergens.
 - Searches combinations of one or two entrée servings and up to two distinct sides, reporting unmet targets rather than inventing foods.
@@ -23,7 +25,9 @@ Open http://127.0.0.1:3210. Run tests with `node --test`.
 
 ## Honest limits
 
-The UCSC URL supplied for October 6, 2026 returned a server runtime error during development. `/api/menu` checks reachability but **does not yet parse menu foods or nutrition**. Manual verified food entry is functional. Automated extraction needs fixtures from working UCSC menu and nutrition pages before release. Nothing in this repo claims that example test foods are real UCSC offerings.
+Live menu reading is implemented for all five dining halls. The viewer defaults to today in Pacific time, displays the meal periods published by UCSC (including brunch or late night where available), and reads per-serving calories/protein from the linked nutrition labels. Vegetarian filtering uses UCSC's vegan/vegetarian markers, never food-name guesses. Missing nutrition remains null and appears as a dash.
+
+The importer establishes a FoodPro session before requests and supplies the missing InCommon ECC OV SSL CA 3 intermediate. The bundled public certificate was obtained from its issuer URL (`http://crt.sectigo.com/InCommonECCOVSSLCA3.crt`) and its signature is verified against Node's trusted roots at startup. TLS/hostname verification is never disabled. Menu and label responses are cached in memory for 10 minutes. No stale data is substituted when a date fails. Individual label failures produce partial menus. Select a hall, date and meal to browse; the daily planner remains C9-only and currently uses explicitly saved foods.
 
 This version is a deterministic planner, not an LLM chat agent. It does not yet discover the nearest hall, maintain a durable intake diary, schedule background daily runs, or automatically deduct meal points. Café hours, inventory, walking distances and prices must be verified. It gives calendar context, not navigation. All main meals remain C9.
 
@@ -51,7 +55,7 @@ For future “I just left the gym” requests: ALVIS should collect current loca
 
 Security: localhost-only binding; host and mutation-origin checks; no third-party browser scripts; UI renders menu names as text; OAuth PKCE/state and an HttpOnly state cookie; calendar tokens stay server-side. Do not expose this development server on a public interface. Personal preferences live in browser local storage. Calendar snapshots in `data/` are private local files.
 
-## Sources (checked September 29, 2026)
+## Sources (checked October 2, 2026)
 
 - [UCSC menu](https://nutrition.sa.ucsc.edu/shortmenu.aspx?locationNum=40)
 - [C9 hours](https://dining.ucsc.edu/locations-hours/nine-jrl/): regular times can change; confirm for each date.
