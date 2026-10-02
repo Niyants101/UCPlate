@@ -117,18 +117,21 @@ function buildSourceUrl(date,location,path='shortmenu.aspx',meal){
 export function sourceUrl(date,hallId,path='shortmenu.aspx',meal){
   const hall=DEFAULT_LOCATIONS.find(h=>h.id===hallId);if(!hall)throw new Error('Unknown dining location.');return buildSourceUrl(date,hall,path,meal);
 }
-async function mapLimit(items,fn,limit=5){let index=0;const result=new Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;result[i]=await fn(items[i]);}}));return result;}
+async function mapLimit(items,fn,limit=6){let index=0;const result=new Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;result[i]=await fn(items[i]);}}));return result;}
+async function sessionSeed(){
+  return cached('session-seed',async()=>{const session={cookie:''};await request(origin,session);return session.cookie||'';});
+}
+async function makeSession(){return {cookie:await sessionSeed()};}
 export async function getLocations(){
   return cached('locations',async()=>{
-    const session={cookie:''};
-    try{return parseLocations(await request(new URL('location.aspx',origin),session));}
+    try{const session=await makeSession();return parseLocations(await request(new URL('location.aspx',origin),session));}
     catch{return DEFAULT_LOCATIONS.map(x=>({...x,fallback:true}));}
   });
 }
 async function getLocation(hallId){const locations=await getLocations(),location=locations.find(x=>x.id===hallId);if(!location)throw new Error('Unknown dining location.');return location;}
 async function getDayPage(date,location){
   return cached(`day:${date}:${location.id}`,async()=>{
-    const session={cookie:''};await request(origin,session);
+    const session=await makeSession();
     const source=buildSourceUrl(date,location),html=await request(source,session),availableDates=parseAvailableDates(html);
     try{return {session,source,availableDates,meals:parseShort(html,date),error:null,fetchedAt:new Date().toISOString()};}
     catch(error){return {session,source,availableDates,meals:[],error:error.message,fetchedAt:new Date().toISOString()};}
