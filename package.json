@@ -1,1 +1,14 @@
-{"name":"college-bulk-planner","version":"0.1.0","private":true,"type":"module","description":"Vegetarian College Nine meal planning core for ALVIS","engines":{"node":">=22"},"scripts":{"start":"node server.mjs","test":"node --test"}}
+{
+  "name": "college-bulk-planner",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Dark mode UCSC dining dashboard with live menus and an optional vegetarian College Nine planner",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  }
+}

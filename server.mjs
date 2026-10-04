@@ -3,7 +3,8 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {planDay} from './planner.mjs';
 import {calendarRoute} from './calendar.mjs';
-import {getMenu,HALLS} from './menus.mjs';
+import {getMenu,getDashboard,getLocations} from './menus.mjs';
+import {getDaySchedule,getServingStatus} from './dining-hours.mjs';
 const port=Number(process.env.PORT||3210);
 const publicFiles={'/menus-ui.js':['menus-ui.js','text/javascript'],'/':['index.html','text/html'],'/app.js':['app.js','text/javascript'],'/style.css':['style.css','text/css']};
 export const server=http.createServer(async(req,res)=>{
@@ -12,7 +13,15 @@ export const server=http.createServer(async(req,res)=>{
     if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) return send(403,{error:'Local access only.'});
     const url=new URL(req.url,`http://127.0.0.1:${port}`);
     if(await calendarRoute(req,res,url,send,port))return;
-    if(req.method==='GET' && url.pathname==='/api/halls')return send(200,HALLS);
+    if(req.method==='GET' && url.pathname==='/api/halls')return send(200,await getLocations());
+    if(req.method==='GET' && url.pathname==='/api/dashboard'){
+      try{
+        const date=url.searchParams.get('date');
+        const data=await getDashboard(date);
+        data.locations=data.locations.map(location=>({...location,schedule:getDaySchedule(date,location.id),serving:getServingStatus(date,location.id)}));
+        return send(200,data);
+      }catch(e){return send(502,{status:'unavailable',locations:[],availableDates:[],message:e.message});}
+    }
     if(req.method==='GET' && url.pathname==='/api/menu') {
       try { return send(200,await getMenu(url.searchParams.get('date'),url.searchParams.get('hall')||'40',url.searchParams.get('meal'))); }
       catch(e){return send(502,{status:'unavailable',items:[],message:e.message});}
@@ -31,4 +40,3 @@ export const server=http.createServer(async(req,res)=>{
   }catch(e){send(400,{error:e.message});}
 });
 if(process.argv[1]===fileURLToPath(import.meta.url)) server.listen(port,'127.0.0.1',()=>console.log(`College Bulk Planner: http://127.0.0.1:${port}`));
-
