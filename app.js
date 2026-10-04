@@ -332,7 +332,7 @@ function renderOverview(){
     }else if(location.status!=='live'){
       card.append(el('p',location.message||'No menu posted for this date.','card-message'));
     }else if(s.state==='limited'){
-      card.append(el('p','Limited service now. Open the card for the next full-meal bulk plan.','card-message'));
+      card.append(el('p','Limited service now. Open the card for the next full meal plan.','card-message'));
     }else{
       const meal=relevantMeal(location);
       if(meal){
@@ -493,7 +493,7 @@ async function loadData(bust=false){
   }catch(error){
     $('dashboardStatus').textContent=`Dining menus unavailable: ${error.message}`;
     $('diningOverview').replaceChildren(el('p','The published menu snapshot could not be loaded. Try again in a moment.','menu-empty'));
-    $('bulkPlan').replaceChildren(el('p','The bulk planner needs the UCSC menu snapshot before it can build a meal.','menu-empty'));
+    $('bulkPlan').replaceChildren(el('p','The meal planner needs the UCSC menu snapshot before it can build a meal.','menu-empty'));
   }finally{
     $('refresh').disabled=false;
   }
