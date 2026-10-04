@@ -42,8 +42,8 @@ input:not([type=checkbox]),select{width:100%;padding:11px 12px;border:1px solid 
 input::placeholder{color:#66756b}
 input[type=checkbox]{accent-color:var(--accent);margin-right:7px}
 label{display:block;font-size:13px;font-weight:650;margin:12px 0;color:#d9e1db}
-.dining-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
-.dining-card{display:block;text-align:left;padding:18px;min-height:186px;border-radius:16px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);position:relative;overflow:hidden}
+.scroll-hint{margin:10px 0 6px;color:var(--muted);font-size:11px}.dining-grid{display:flex;gap:12px;margin-top:12px;overflow-x:auto;overflow-y:hidden;padding:4px 2px 14px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.dining-card{display:block;flex:0 0 286px;text-align:left;padding:16px;min-height:164px;border-radius:16px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);position:relative;overflow:hidden;scroll-snap-align:start}
 .dining-card:hover{transform:translateY(-1px);border-color:#405647;background:#152019}
 .dining-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px rgba(183,236,114,.18) inset}
 .dining-card:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:#66756b}
@@ -94,11 +94,11 @@ label{display:block;font-size:13px;font-weight:650;margin:12px 0;color:#d9e1db}
 .links{display:flex;gap:18px;align-items:center;margin:15px 0}
 .links a{font-size:12px}
 footer{padding:28px 0 42px;color:var(--muted);font-size:12px}
-@media(max-width:1000px){.dining-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{gap:30px}}
+@media(max-width:1000px){.hero{gap:30px}.dining-card{flex-basis:270px}}
 @media(max-width:720px){
   header{padding:18px}header span{display:none}main{padding:0 18px}
   .hero{grid-template-columns:1fr;padding:35px 0 24px}.hero h1{font-size:48px;letter-spacing:-2.5px}
-  .now-card,.live-menu{padding:18px}.dining-grid{grid-template-columns:1fr}
+  .now-card,.live-menu{padding:18px}.dining-card{flex-basis:258px}
   .section-head,.detail-head{display:block}.section-head button{margin-top:14px}
   .browse-controls{min-width:0;margin-top:18px}
   .menu-tools{flex-wrap:wrap;align-items:center}.menu-tools>label:first-child{width:100%}
@@ -109,4 +109,59 @@ footer{padding:28px 0 42px;color:var(--muted);font-size:12px}
 @media(max-width:480px){
   .hero h1{font-size:42px}.date-bar{grid-template-columns:auto 1fr auto}.date-bar #dateToday{grid-column:1/-1}
   .static-food-row{align-items:flex-start}.schedule-slot{min-width:125px}
+}
+
+.bulk-mini{margin-top:14px;padding:10px 11px;border-radius:11px;background:rgba(183,236,114,.07);border:1px solid rgba(183,236,114,.18);display:grid;gap:4px}
+.bulk-mini-label{font-size:9px;letter-spacing:1.4px;color:var(--accent);font-weight:850}
+.bulk-mini strong{font-size:13px}
+.bulk-mini small{margin:0;color:#aeb9b0;line-height:1.4}
+.bulk-planner{margin:28px 0 0;padding:24px;border:1px solid rgba(183,236,114,.25);border-radius:18px;background:linear-gradient(145deg,rgba(30,46,34,.78),rgba(13,20,15,.96));box-shadow:0 18px 60px rgba(0,0,0,.18)}
+.bulk-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start}
+.bulk-head h2{margin:0 0 8px}
+.bulk-target{flex:0 0 auto;min-width:180px;padding:12px 14px;border-radius:12px;background:#0a100c;border:1px solid var(--line-strong);display:grid;gap:3px;text-align:right}
+.bulk-target span{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.bulk-target strong{font-size:16px;color:var(--accent)}
+.bulk-plan{margin-top:18px}
+.bulk-summary{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:16px;border-radius:14px;background:#0b120e;border:1px solid var(--line)}
+.bulk-summary-copy{display:grid;gap:4px}
+.bulk-summary-copy p{margin:0;color:var(--muted);font-size:12px}
+.bulk-quality{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--mint);font-weight:850}
+.bulk-metrics{display:flex;gap:10px}
+.bulk-metric{min-width:92px;text-align:center;padding:10px 12px;border-radius:10px;background:var(--panel-3);border:1px solid var(--line)}
+.bulk-metric strong{display:block;font-size:22px;line-height:1}
+.bulk-metric span{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+.bulk-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.bulk-item{padding:14px;border:1px solid var(--line);border-radius:13px;background:#0b110d}
+.bulk-item-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.bulk-food-link{color:var(--text);font-weight:760;font-size:14px;text-decoration:none;line-height:1.35}
+a.bulk-food-link:hover{color:var(--accent);text-decoration:underline}
+.quantity{font-size:11px;font-weight:850;color:var(--accent);background:var(--accent-soft);padding:4px 7px;border-radius:999px}
+.bulk-item-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;color:var(--muted);font-size:10px}
+.nutrition-cta{display:inline-block;margin-top:10px;color:var(--accent);font-size:10px}
+.bulk-note{margin:13px 0 0;color:var(--muted);font-size:11px;line-height:1.55}
+.bulk-empty{padding:22px;border:1px solid var(--line);border-radius:13px;background:#0b110d}
+.bulk-empty strong{font-size:15px}
+.bulk-empty p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.55}
+.bulk-tune{margin-top:16px}
+.bulk-tune summary{cursor:pointer;font-size:12px;color:#cbd5cd;font-weight:700}
+.target-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-top:8px}
+.target-controls label{margin:0}
+.target-controls button{height:42px}
+.food-copy{min-width:0}
+.static-food-name{color:var(--text);text-decoration:none}
+a.static-food-name:hover{color:var(--accent);text-decoration:underline}
+.food-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px;color:var(--muted);font-size:10px}
+.nutrition-inline{color:var(--accent);font-weight:700}
+@media(max-width:720px){
+  .bulk-planner{padding:18px}
+  .bulk-head,.bulk-summary{display:block}
+  .bulk-target{margin-top:14px;text-align:left}
+  .bulk-metrics{margin-top:12px}
+  .bulk-items{grid-template-columns:1fr}
+  .target-controls{grid-template-columns:1fr 1fr}
+  .target-controls button{grid-column:1/-1}
+}
+@media(max-width:480px){
+  .bulk-metrics{display:grid;grid-template-columns:1fr 1fr}
+  .bulk-metric{min-width:0}
 }

@@ -12,15 +12,15 @@
 <body>
 <header>
   <a class="brand" href="./">COLLEGE BULK</a>
-  <span>UCSC DINING · LIVE SNAPSHOT</span>
+  <span>UCSC DINING · BULK PLANNER</span>
 </header>
 
 <main>
   <section class="hero">
     <div>
       <p class="eyebrow">AUTOMATIC UCSC DINING</p>
-      <h1>What can I eat<br><em>right now?</em></h1>
-      <p class="intro">No setup required. The site uses Santa Cruz time, checks UCSC's posted menus, and brings the useful dining options to the top.</p>
+      <h1>What should I eat<br><em>to bulk today?</em></h1>
+      <p class="intro">Open the site and it does the work. It checks Santa Cruz time, reads UCSC menus, sorts the places that are useful right now, and builds a high protein meal for the selected location.</p>
     </div>
     <aside class="now-card">
       <span class="tag" id="dateContext">RIGHT NOW</span>
@@ -29,13 +29,13 @@
     </aside>
   </section>
 
-  <div id="notice" role="status">Menus are refreshed automatically through GitHub and may still change at the dining location. Regular serving schedules may not reflect special closures or real time updates.</div>
+  <div id="notice" role="status">Menus and nutrition come from UCSC Dining. Serving schedules are regular hours and can differ during special closures or substitutions.</div>
 
   <section class="live-menu">
     <div class="section-head">
       <div>
-        <p class="eyebrow">ALL CAMPUS MENUS</p>
-        <h2>Dining right now</h2>
+        <p class="eyebrow">PLACES TO EAT</p>
+        <h2>Pick a place, or just scroll</h2>
         <p id="locationCount" class="muted"></p>
       </div>
       <button id="refresh" type="button">Reload snapshot ↻</button>
@@ -49,7 +49,33 @@
     </div>
 
     <p id="dashboardStatus" class="muted" role="status">Loading UCSC menus…</p>
+    <p class="scroll-hint">Swipe, drag, or use your mouse wheel over the cards to move sideways.</p>
     <div id="diningOverview" class="dining-grid" aria-live="polite"></div>
+
+    <section class="bulk-planner" id="bulkPlanner" aria-labelledby="bulkTitle">
+      <div class="bulk-head">
+        <div>
+          <p class="eyebrow">AUTOMATIC BULK PLANNER</p>
+          <h2 id="bulkTitle">Your bulk meal</h2>
+          <p id="bulkSubtitle" class="muted">No required setup. The planner starts with a default meal target and only uses UCSC nutrition labels.</p>
+        </div>
+        <div class="bulk-target">
+          <span>Current target</span>
+          <strong id="bulkTargetBadge">850 kcal · 45 g protein</strong>
+        </div>
+      </div>
+
+      <div id="bulkPlan" class="bulk-plan" aria-live="polite"></div>
+
+      <details class="bulk-tune">
+        <summary>Tune the meal target (optional)</summary>
+        <div class="target-controls">
+          <label>Calories<input id="bulkCalories" type="number" min="300" max="1800" step="25" value="850"></label>
+          <label>Protein (g)<input id="bulkProtein" type="number" min="10" max="120" step="5" value="45"></label>
+          <button id="bulkReset" type="button">Reset default</button>
+        </div>
+      </details>
+    </section>
 
     <section class="menu-detail" aria-labelledby="selectedLocationName">
       <div class="detail-head">
@@ -85,12 +111,12 @@
         <span id="menuUpdated" class="muted"></span>
       </div>
 
-      <p class="muted">During Continuous Dining, only a limited selection may be available. Grill items, pizza, salad bar, beverages, and desserts may be offered. A full Lunch or Dinner menu should not be assumed to be available during that window.</p>
+      <p class="muted">Click a food name when an exact UCSC nutrition label is available. During Continuous Dining, the full Lunch or Dinner menu should not be assumed to be available.</p>
     </section>
   </section>
 
   <footer>
-    <span>Built from UCSC Dining's posted menus. Always confirm special hours and substitutions at the location.</span>
+    <span>Built from UCSC Dining's posted menus and nutrition labels. The planner never invents nutrition values or menu items.</span>
   </footer>
 </main>
 </body>
