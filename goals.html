@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b09">
+  <title>Goals · College Fuel</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./goals.js"></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="./">COLLEGE FUEL</a>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="./">Dining</a>
+    <a class="active" href="./goals.html">Goals</a>
+  </nav>
+</header>
+
+<main class="goals-page">
+  <section class="goals-hero">
+    <p class="eyebrow">SET ONCE · USE EVERY MEAL</p>
+    <h1>Your goals.<br><em>That’s it.</em></h1>
+    <p class="intro">Tell the planner your daily calories and protein. It will automatically turn those into meal targets using the meals posted at the dining location you choose.</p>
+  </section>
+
+  <section class="goals-card">
+    <div class="goals-copy">
+      <p class="eyebrow">MEAL PLAN SETTINGS</p>
+      <h2>What are you aiming for?</h2>
+      <p class="muted">Cut, maintain, or gain is just a label for your plan. The numbers you enter below are what the meal planner actually follows.</p>
+    </div>
+
+    <form id="goalsForm">
+      <fieldset class="goal-mode-field">
+        <legend>Goal</legend>
+        <div class="goal-mode-grid">
+          <label class="goal-choice">
+            <input type="radio" name="goalMode" value="cut">
+            <span><strong>Cut</strong><small>Eat toward your chosen deficit target</small></span>
+          </label>
+          <label class="goal-choice">
+            <input type="radio" name="goalMode" value="maintain" checked>
+            <span><strong>Maintain</strong><small>Stay around your chosen maintenance target</small></span>
+          </label>
+          <label class="goal-choice">
+            <input type="radio" name="goalMode" value="gain">
+            <span><strong>Gain</strong><small>Eat toward your chosen surplus target</small></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="goal-number-grid">
+        <label>
+          Daily calories
+          <input id="dailyCalories" type="number" min="500" max="6000" step="25" inputmode="numeric" placeholder="e.g. 2400" required>
+        </label>
+        <label>
+          Daily protein (g)
+          <input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="e.g. 140" required>
+        </label>
+      </div>
+
+      <div class="goal-explainer">
+        <strong>No per-meal math needed.</strong>
+        <p>If a location has 3 posted meals, the planner starts by splitting your daily goals across 3. If it has 4, it splits across 4. Then it searches the actual UCSC foods and serving sizes for the closest meal.</p>
+      </div>
+
+      <p id="goalError" class="form-error" role="alert"></p>
+
+      <div class="goal-actions">
+        <button class="primary-action" type="submit">Save goals and plan my meal →</button>
+        <button id="clearGoals" class="quiet-action" type="button">Clear goals</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="current-goals">
+    <span class="eyebrow">CURRENT SETUP</span>
+    <strong id="currentGoalSummary">No goals saved yet.</strong>
+    <p class="muted">Your settings stay in this browser. You can change them anytime without re-entering anything on the dining page.</p>
+  </section>
+
+  <footer>
+    <span>The site does not calculate a calorie deficit, maintenance level, or surplus for you. It follows the targets you choose.</span>
+    <a href="./">Back to dining</a>
+  </footer>
+</main>
+</body>
+</html>

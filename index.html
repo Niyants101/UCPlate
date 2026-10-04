@@ -5,22 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
-  <title>College Bulk · UCSC Dining</title>
+  <title>College Fuel · UCSC Meal Helper</title>
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="./">COLLEGE BULK</a>
-  <span>UCSC DINING · BULK PLANNER</span>
+  <a class="brand" href="./">COLLEGE FUEL</a>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a class="active" href="./">Dining</a>
+    <a href="./goals.html">Goals</a>
+  </nav>
 </header>
 
 <main>
   <section class="hero">
     <div>
-      <p class="eyebrow">AUTOMATIC UCSC DINING</p>
-      <h1>What should I eat<br><em>to bulk today?</em></h1>
-      <p class="intro">Open the site and it does the work. It checks Santa Cruz time, reads UCSC menus, sorts the places that are useful right now, and builds a high protein meal for the selected location.</p>
+      <p class="eyebrow">AUTOMATIC UCSC MEAL HELPER</p>
+      <h1>What should I eat<br><em>today?</em></h1>
+      <p class="intro">Set your calorie and protein goals once. After that, the site checks Santa Cruz time, reads UCSC menus, and builds a meal that helps you cut, maintain, or gain with almost no input.</p>
     </div>
     <aside class="now-card">
       <span class="tag" id="dateContext">RIGHT NOW</span>
@@ -49,32 +52,28 @@
     </div>
 
     <p id="dashboardStatus" class="muted" role="status">Loading UCSC menus…</p>
-    <p class="scroll-hint">Swipe, drag, or use your mouse wheel over the cards to move sideways.</p>
+    <p class="scroll-hint">Dining halls come first, then cafés and markets. Swipe, drag, or use your mouse wheel to move sideways.</p>
     <div id="diningOverview" class="dining-grid" aria-live="polite"></div>
 
     <section class="bulk-planner" id="bulkPlanner" aria-labelledby="bulkTitle">
       <div class="bulk-head">
         <div>
-          <p class="eyebrow">AUTOMATIC BULK PLANNER</p>
-          <h2 id="bulkTitle">Your bulk meal</h2>
-          <p id="bulkSubtitle" class="muted">No required setup. The planner starts with a default meal target and only uses UCSC nutrition labels.</p>
+          <p class="eyebrow">AUTOMATIC MEAL PLANNER</p>
+          <h2 id="bulkTitle">Your meal plan</h2>
+          <p id="bulkSubtitle" class="muted">Your daily calorie and protein goals are automatically divided across the posted meals for this location.</p>
         </div>
         <div class="bulk-target">
-          <span>Current target</span>
-          <strong id="bulkTargetBadge">850 kcal · 45 g protein</strong>
+          <span id="goalModeBadge">YOUR GOAL</span>
+          <strong id="bulkTargetBadge">Set your goals</strong>
         </div>
       </div>
 
       <div id="bulkPlan" class="bulk-plan" aria-live="polite"></div>
 
-      <details class="bulk-tune">
-        <summary>Tune the meal target (optional)</summary>
-        <div class="target-controls">
-          <label>Calories<input id="bulkCalories" type="number" min="300" max="1800" step="25" value="850"></label>
-          <label>Protein (g)<input id="bulkProtein" type="number" min="10" max="120" step="5" value="45"></label>
-          <button id="bulkReset" type="button">Reset default</button>
-        </div>
-      </details>
+      <div class="goal-link-row">
+        <span id="dailyGoalSummary" class="muted">Set your daily goals once and the planner handles the meal targets automatically.</span>
+        <a class="button-link" href="./goals.html">Edit goals</a>
+      </div>
     </section>
 
     <section class="menu-detail" aria-labelledby="selectedLocationName">
@@ -117,6 +116,7 @@
 
   <footer>
     <span>Built from UCSC Dining's posted menus and nutrition labels. The planner never invents nutrition values or menu items.</span>
+    <a href="./goals.html">Meal goals</a>
   </footer>
 </main>
 </body>
