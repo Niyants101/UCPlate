@@ -18,6 +18,13 @@ function sameMenu(a,b){
   if(!a||!b||a.name!==b.name||a.items.length!==b.items.length)return false;
   return a.items.every((item,index)=>item.name===b.items[index]?.name);
 }
+function isDetailed(meal){
+  return meal?.items?.some(item=>
+    item&&Object.prototype.hasOwnProperty.call(item,'calories')&&
+    Object.prototype.hasOwnProperty.call(item,'protein')&&
+    typeof item.source==='string'
+  );
+}
 function chooseBulkMeal(location,date){
   const meals=location.meals||[];
   if(!meals.length)return {meal:null,mode:'unavailable'};
@@ -37,7 +44,7 @@ function chooseBulkMeal(location,date){
   }
   return {meal:meals.find(meal=>/all day/i.test(meal.name))||meals[0],mode:status.state==='unknown'?'menu':'next'};
 }
-async function mapLimit(items,fn,limit=3){
+async function mapLimit(items,fn,limit=2){
   let index=0;
   const result=new Array(items.length);
   await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{
@@ -57,7 +64,7 @@ const previous=await readPrevious();
 const first=await getDashboard(today);
 const dates=[...new Set([today,...first.availableDates.filter(date=>date>=today)])].sort();
 const data={
-  version:3,
+  version:4,
   generatedAt:new Date().toISOString(),
   timezone:'America/Los_Angeles',
   bulkDefaults:{calories:850,protein:45},
@@ -81,30 +88,31 @@ for(const date of dates){
   if(date===today){
     locations=await mapLimit(locations,async location=>{
       if(location.status!=='live'||!location.meals?.length)return location;
-      const choice=chooseBulkMeal(location,date);
-      if(!choice.meal)return location;
       const oldLocation=previous?.dates?.[date]?.locations?.find(item=>item.id===location.id);
-      const oldRaw=oldLocation?.meals?.find(meal=>meal.name===choice.meal.name);
-      const canReuse=oldLocation?.bulk?.meal===choice.meal.name
-        && sameMenu(oldRaw,choice.meal)
-        && oldLocation.bulk.items?.some(item=>item.source&&item.nutritionStatus==='available');
-      let detailed;
-      if(canReuse){
-        detailed={status:oldLocation.bulk.status||'live',items:oldLocation.bulk.items,message:oldLocation.bulk.message||'Nutrition reused from the latest matching UCSC menu.'};
-      }else{
-        try{detailed=await getMenu(date,location.id,choice.meal.name);}
-        catch(error){detailed={status:'unavailable',items:[],message:error.message};}
+      const enriched=[];
+      for(const rawMeal of location.meals){
+        const oldMeal=oldLocation?.meals?.find(meal=>meal.name===rawMeal.name);
+        if(sameMenu(oldMeal,rawMeal)&&isDetailed(oldMeal)){
+          enriched.push({...rawMeal,items:oldMeal.items});
+          continue;
+        }
+        try{
+          const detailed=await getMenu(date,location.id,rawMeal.name);
+          enriched.push(detailed.items?.length?{...rawMeal,items:detailed.items}:rawMeal);
+        }catch{
+          enriched.push(rawMeal);
+        }
       }
-      if(detailed.items?.length){
-        location.meals=location.meals.map(meal=>meal.name===choice.meal.name?{...meal,items:detailed.items}:meal);
-      }
-      location.bulk={
-        meal:choice.meal.name,
+      location.meals=enriched;
+      const choice=chooseBulkMeal(location,date);
+      const selected=choice.meal?location.meals.find(meal=>meal.name===choice.meal.name):null;
+      location.bulk=selected?{
+        meal:selected.name,
         mode:choice.mode,
-        status:detailed.status||'unavailable',
-        message:detailed.message||'',
-        items:detailed.items||[]
-      };
+        status:isDetailed(selected)?'live':'unavailable',
+        message:isDetailed(selected)?'Exact UCSC nutrition labels are indexed for this meal.':'Nutrition labels could not be indexed for this meal.',
+        items:selected.items
+      }:null;
       return location;
     });
   }
@@ -120,4 +128,4 @@ await copyFile(new URL('app.js',pages),new URL('app.js',out));
 await copyFile(new URL('style.css',pages),new URL('style.css',out));
 await copyFile(new URL('../dining-hours.mjs',pages),new URL('dining-hours.mjs',out));
 await writeFile(new URL('.nojekyll',out),'');
-console.log(`Built GitHub Pages snapshot for ${dates.length} posted date(s), ${first.locations.length} UCSC menu location(s), and automatic bulk plans for today's published menus.`);
+console.log(`Built GitHub Pages snapshot for ${dates.length} posted date(s), ${first.locations.length} UCSC menu location(s), exact nutrition links for today's published meals, and automatic bulk plans.`);
