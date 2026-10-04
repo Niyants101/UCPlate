@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b09">
+  <title>College Bulk · UCSC Dining</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="./">COLLEGE BULK</a>
+  <span>UCSC DINING · LIVE SNAPSHOT</span>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">AUTOMATIC UCSC DINING</p>
+      <h1>What can I eat<br><em>right now?</em></h1>
+      <p class="intro">No setup required. The site uses Santa Cruz time, checks UCSC's posted menus, and brings the useful dining options to the top.</p>
+    </div>
+    <aside class="now-card">
+      <span class="tag" id="dateContext">RIGHT NOW</span>
+      <strong id="campusClock">Loading campus time…</strong>
+      <p id="snapshotAge">Loading the latest UCSC menu snapshot…</p>
+    </aside>
+  </section>
+
+  <div id="notice" role="status">Menus are refreshed automatically through GitHub and may still change at the dining location. Regular serving schedules may not reflect special closures or real time updates.</div>
+
+  <section class="live-menu">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">ALL CAMPUS MENUS</p>
+        <h2>Dining right now</h2>
+        <p id="locationCount" class="muted"></p>
+      </div>
+      <button id="refresh" type="button">Reload snapshot ↻</button>
+    </div>
+
+    <div class="date-bar" aria-label="Menu date navigation">
+      <button id="datePrev" type="button" aria-label="Previous posted menu date">‹</button>
+      <select id="menuDate" aria-label="Menu date"></select>
+      <button id="dateNext" type="button" aria-label="Next posted menu date">›</button>
+      <button id="dateToday" type="button">Today</button>
+    </div>
+
+    <p id="dashboardStatus" class="muted" role="status">Loading UCSC menus…</p>
+    <div id="diningOverview" class="dining-grid" aria-live="polite"></div>
+
+    <section class="menu-detail" aria-labelledby="selectedLocationName">
+      <div class="detail-head">
+        <div>
+          <p class="eyebrow">FULL MENU</p>
+          <h2 id="selectedLocationName">Dining menu</h2>
+          <p id="selectedLocationStatus" class="serving-line"></p>
+        </div>
+
+        <details class="browse-controls">
+          <summary>Browse another menu</summary>
+          <div class="menu-controls">
+            <label>Dining location<select id="hall"></select></label>
+            <label>Meal<select id="menuMeal"></select></label>
+          </div>
+        </details>
+      </div>
+
+      <div id="selectedSchedule" class="selected-schedule"></div>
+      <div id="mealTabs" class="meal-tabs" aria-label="Meal periods"></div>
+
+      <div class="menu-tools">
+        <label><input id="vegetarianOnly" type="checkbox"> Vegetarian & vegan only</label>
+        <label class="search-label">Find a food<input id="menuSearch" type="search" placeholder="Search tofu, pizza, beans…"></label>
+        <label>Sort by<select id="menuSort"><option value="station">Dining station</option><option value="alpha">A to Z</option></select></label>
+      </div>
+
+      <p id="menuStatus" class="menu-callout" role="status">Loading the most relevant meal…</p>
+      <div id="menuItems" aria-live="polite"></div>
+
+      <div class="links">
+        <a id="menuLink" target="_blank" rel="noreferrer">View UCSC source ↗</a>
+        <span id="menuUpdated" class="muted"></span>
+      </div>
+
+      <p class="muted">During Continuous Dining, only a limited selection may be available. Grill items, pizza, salad bar, beverages, and desserts may be offered. A full Lunch or Dinner menu should not be assumed to be available during that window.</p>
+    </section>
+  </section>
+
+  <footer>
+    <span>Built from UCSC Dining's posted menus. Always confirm special hours and substitutions at the location.</span>
+  </footer>
+</main>
+</body>
+</html>
