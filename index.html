@@ -6,38 +6,39 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
   <title>College Bulk · UCSC Dining</title>
-  <link rel="stylesheet" href="/style.css">
-  <script type="module" src="/app.js"></script>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="/">COLLEGE BULK</a>
-  <span>UCSC DINING · LIVE MENUS</span>
+  <a class="brand" href="./">COLLEGE BULK</a>
+  <span>UCSC DINING · LIVE SNAPSHOT</span>
 </header>
+
 <main>
-  <section class="hero dashboard-hero">
+  <section class="hero">
     <div>
       <p class="eyebrow">AUTOMATIC UCSC DINING</p>
       <h1>What can I eat<br><em>right now?</em></h1>
-      <p class="intro">Open the website and start here. It checks the campus date and time, reads UCSC's posted menus, and brings the useful meal to the top.</p>
+      <p class="intro">No setup required. The site uses Santa Cruz time, checks UCSC's posted menus, and brings the useful dining options to the top.</p>
     </div>
     <aside class="now-card">
       <span class="tag" id="dateContext">RIGHT NOW</span>
       <strong id="campusClock">Loading campus time…</strong>
-      <p>No setup required. Browse another day or meal only when you want to.</p>
+      <p id="snapshotAge">Loading the latest UCSC menu snapshot…</p>
     </aside>
   </section>
 
-  <div id="notice" role="status">Menus come from UCSC Dining. Regular serving schedules below may not reflect special circumstances or real time updates.</div>
+  <div id="notice" role="status">Menus are refreshed automatically through GitHub and may still change at the dining location. Regular serving schedules may not reflect special closures or real time updates.</div>
 
-  <section class="live-menu" id="live-menu">
-    <div class="section-head dashboard-head">
+  <section class="live-menu">
+    <div class="section-head">
       <div>
         <p class="eyebrow">ALL CAMPUS MENUS</p>
         <h2>Dining right now</h2>
         <p id="locationCount" class="muted"></p>
       </div>
-      <button id="refresh" type="button">Refresh menus ↻</button>
+      <button id="refresh" type="button">Reload snapshot ↻</button>
     </div>
 
     <div class="date-bar" aria-label="Menu date navigation">
@@ -47,7 +48,7 @@
       <button id="dateToday" type="button">Today</button>
     </div>
 
-    <p id="dashboardStatus" role="status" class="muted">Loading today's posted menus…</p>
+    <p id="dashboardStatus" class="muted" role="status">Loading UCSC menus…</p>
     <div id="diningOverview" class="dining-grid" aria-live="polite"></div>
 
     <section class="menu-detail" aria-labelledby="selectedLocationName">
@@ -57,6 +58,7 @@
           <h2 id="selectedLocationName">Dining menu</h2>
           <p id="selectedLocationStatus" class="serving-line"></p>
         </div>
+
         <details class="browse-controls">
           <summary>Browse another menu</summary>
           <div class="menu-controls">
@@ -72,42 +74,24 @@
       <div class="menu-tools">
         <label><input id="vegetarianOnly" type="checkbox"> Vegetarian & vegan only</label>
         <label class="search-label">Find a food<input id="menuSearch" type="search" placeholder="Search tofu, pizza, beans…"></label>
-        <label>Sort by<select id="menuSort"><option value="station">Dining station</option><option value="protein">Highest protein</option><option value="calories">Highest calories</option></select></label>
+        <label>Sort by<select id="menuSort"><option value="station">Dining station</option><option value="alpha">A to Z</option></select></label>
       </div>
 
-      <p id="menuStatus" role="status" class="menu-callout">Loading the most relevant meal…</p>
+      <p id="menuStatus" class="menu-callout" role="status">Loading the most relevant meal…</p>
       <div id="menuItems" aria-live="polite"></div>
-      <div class="links"><a id="menuLink" target="_blank" rel="noreferrer">View UCSC source ↗</a><span id="menuUpdated" class="muted"></span></div>
-      <p class="muted">During Continuous Dining, only a limited selection may be available. Grill items, pizza, salad bar, beverages, and desserts may be offered. The full Lunch or Dinner menu should not be assumed to be available during that window.</p>
+
+      <div class="links">
+        <a id="menuLink" target="_blank" rel="noreferrer">View UCSC source ↗</a>
+        <span id="menuUpdated" class="muted"></span>
+      </div>
+
+      <p class="muted">During Continuous Dining, only a limited selection may be available. Grill items, pizza, salad bar, beverages, and desserts may be offered. A full Lunch or Dinner menu should not be assumed to be available during that window.</p>
     </section>
   </section>
 
-  <details class="planner-shell">
-    <summary><span>PERSONAL PLANNER</span><strong>Build a vegetarian day around classes and targets</strong></summary>
-    <div class="planner-content">
-      <section class="workspace">
-        <div class="settings"><h2>01 / Your day</h2><form id="settings">
-          <label>Date<input id="date" type="date" required></label>
-          <div class="pair"><label>Calories / day<input id="calories" type="number" min="500" max="10000" placeholder="Your target" required></label><label>Protein / day (g)<input id="protein" type="number" min="10" max="500" placeholder="Your target" required></label></div>
-          <details><summary>Help choosing a starting protein target</summary><p>For healthy adults doing resistance training, about 1.6 g/kg/day is an evidence based starting point. Your calorie target needs your body size, activity, and weight trend; it is intentionally left blank.</p><label>Body weight (kg)<input id="weight" type="number" min="25" max="300"></label><button id="suggest" type="button">Use 1.6 g/kg</button><a href="https://pubmed.ncbi.nlm.nih.gov/28698222/" target="_blank" rel="noreferrer">Read the research</a></details>
-          <div class="checks"><label><input id="eggs" type="checkbox"> I eat eggs</label><label><input id="dairy" type="checkbox"> I eat dairy</label></div>
-          <label>Exclude allergens (comma separated)<input id="allergens" placeholder="e.g. peanuts, sesame"></label><small>Match the menu's allergen names. Confirm ingredients and cross contact with dining staff.</small>
-          <details><summary>Google Calendar availability</summary><p id="calendarStatus" class="muted">Import a connected chat snapshot, or connect this website for live reads.</p><div class="links"><a href="/auth/google/start" target="_blank" rel="noreferrer">Connect Google ↗</a><button id="calendarImport" type="button">Import availability</button></div><div id="cafe"></div></details>
-          <label>Travel buffer each way (minutes)<input id="travel" type="number" min="0" max="120" value="15"></label>
-          <label>Busy times for this date · one per line<textarea id="busy" rows="3" placeholder="09:00-10:30&#10;13:00-14:00"></textarea></label>
-          <h3>Dining windows</h3><p class="muted">Confirm special closures before building a plan.</p><div id="windows"></div>
-          <details><summary>Eco Box availability & payment</summary><label><input id="ecoAvailable" type="checkbox"> I confirmed Eco Box service for this date</label><label><input id="ecoPaid" type="checkbox"> I have an eligible meal plan or Banana Bucks and can cover entry + deposit</label><p>Weekdays only during eligible service, 7am to 10pm. One takeout meal per period, separate from dine in. Pack one entrée and up to two sides; the lid must close. Deposit: 10 points. Unlimited plans do not include takeout.</p><a href="https://dining.ucsc.edu/programs-policies/eco-box/" target="_blank" rel="noreferrer">Current Eco Box policy</a></details>
-          <button class="primary" type="submit">Build my day ↗</button>
-        </form></div>
-        <div class="results">
-          <section><h2>02 / Foods saved for your C9 plan</h2><p class="muted">The live dining dashboard works campus wide. This personal planner still uses College Nine for its main meals.</p><details><summary>Add a verified food</summary><form id="foodForm"><label>Food name<input name="name" required maxlength="150"></label><div class="pair"><label>Meal<select name="period"><option>breakfast</option><option>lunch</option><option>dinner</option><option>late night</option></select></label><label>Type<select name="kind"><option value="entree">Entrée</option><option value="side">Side</option></select></label></div><label>Serving size<input name="serving" placeholder="e.g. 1 cup / 150 g" required></label><div class="pair"><label>Calories per serving<input name="calories" type="number" min="0" max="3000" required></label><label>Protein per serving (g)<input name="protein" type="number" min="0" max="200" step="0.1" required></label></div><label>Official dietary label<select name="diet"><option value="vegan">Vegan</option><option value="vegetarian">Vegetarian</option><option value="unknown">Unknown (excluded)</option></select></label><div class="checks"><label><input name="eggs" type="checkbox"> Contains eggs</label><label><input name="dairy" type="checkbox"> Contains dairy</label></div><label>Listed allergens<input name="allergens" placeholder="comma separated"></label><label><input name="verified" type="checkbox" required> I verified this food, portion, nutrition and dietary label for the selected date</label><button type="submit">Add food</button></form></details><ul id="foods" class="food-list"></ul><p id="emptyFoods" class="muted">No foods saved for this date. Add entries from the official menu to get started.</p></section>
-          <section><div class="section-head"><h2>03 / Your meal plan</h2><button id="export" disabled>Export for ALVIS ↓</button></div><div id="plan"><div class="empty">A little planning.<br><strong>A much easier day.</strong><p>Your meal itinerary will appear here.</p></div></div></section>
-        </div>
-      </section>
-    </div>
-  </details>
-
-  <footer>Built around UCSC Dining's posted menus. Always confirm special hours and substitutions at the location. <button id="clear">Clear local data</button></footer>
+  <footer>
+    <span>Built from UCSC Dining's posted menus. Always confirm special hours and substitutions at the location.</span>
+  </footer>
 </main>
 </body>
 </html>

@@ -6,7 +6,7 @@ import {calendarRoute} from './calendar.mjs';
 import {getMenu,getDashboard,getLocations} from './menus.mjs';
 import {getDaySchedule,getServingStatus} from './dining-hours.mjs';
 const port=Number(process.env.PORT||3210);
-const publicFiles={'/menus-ui.js':['menus-ui.js','text/javascript'],'/':['index.html','text/html'],'/app.js':['app.js','text/javascript'],'/style.css':['style.css','text/css']};
+const publicFiles={'/menus-ui.js':['menus-ui.js','text/javascript'],'/':['local/index.html','text/html'],'/app.js':['local/app.js','text/javascript'],'/style.css':['local/style.css','text/css']};
 export const server=http.createServer(async(req,res)=>{
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
   try {
