@@ -114,7 +114,7 @@ function nutritionItems(location,mealName){
     item.calories!==null&&item.calories!==undefined&&
     item.protein!==null&&item.protein!==undefined&&
     typeof item.source==='string'
-  )?meal.items:(location?.bulk?.items||[]);
+  )?meal.items:(mealName===location?.bulk?.meal?(location?.bulk?.items||[]):[]);
   return exact.filter(item=>
     item.calories!==null&&item.calories!==undefined&&
     item.protein!==null&&item.protein!==undefined&&
