@@ -104,6 +104,8 @@ function relevantMeal(location){
 }
 function nutritionItems(location){
   return location?.bulk?.items?.filter(item=>
+    item.calories!==null&&item.calories!==undefined&&
+    item.protein!==null&&item.protein!==undefined&&
     Number.isFinite(Number(item.calories))&&Number(item.calories)>0&&
     Number.isFinite(Number(item.protein))&&Number(item.protein)>=0
   )||[];
@@ -278,7 +280,7 @@ function renderOverview(){
     const autoPlan=activeDate===today?buildBulkPlan(location):null;
     if(autoPlan){
       const mini=el('div','','bulk-mini');
-      mini.append(el('span','AUTO BULK','bulk-mini-label'));
+      mini.append(el('span',location.bulk?.mode==='now'?'AUTO BULK':'NEXT BULK','bulk-mini-label'));
       mini.append(el('strong',`${Math.round(autoPlan.calories)} kcal · ${Math.round(autoPlan.protein)} g protein`));
       mini.append(el('small',autoPlan.picks.slice(0,2).map(p=>`${p.quantity>1?`${p.quantity}× `:''}${p.item.name}`).join(' + ')));
       card.append(mini);
