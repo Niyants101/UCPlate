@@ -14,76 +14,119 @@
   <a class="brand" href="./">COLLEGE FUEL</a>
   <nav class="site-nav" aria-label="Main navigation">
     <a href="./">Dining</a>
-    <a class="active" href="./goals.html">Goals</a>
+    <a class="active" href="./goals.html">Set Goals</a>
   </nav>
 </header>
 
 <main class="goals-page">
   <section class="goals-hero">
-    <p class="eyebrow">SET ONCE · USE EVERY MEAL</p>
-    <h1>Your goals.<br><em>That’s it.</em></h1>
-    <p class="intro">Tell the planner your daily calories and protein. It will automatically turn those into meal targets using the meals posted at the dining location you choose.</p>
+    <p class="eyebrow">SET IT ONCE</p>
+    <h1>Tell us the target.<br><em>We handle the meals.</em></h1>
+    <p class="intro">Pick your direction, enter your daily calories and protein, and save. From then on the dining page automatically turns UCSC menus into meals that fit your numbers.</p>
   </section>
 
   <section class="goals-card">
-    <div class="goals-copy">
-      <p class="eyebrow">MEAL PLAN SETTINGS</p>
-      <h2>What are you aiming for?</h2>
-      <p class="muted">Cut, maintain, or gain is just a label for your plan. The numbers you enter below are what the meal planner actually follows.</p>
+    <div class="step-heading">
+      <span class="step-number">1</span>
+      <div>
+        <p class="eyebrow">CHOOSE YOUR DIRECTION</p>
+        <h2>What are you trying to do?</h2>
+      </div>
     </div>
 
     <form id="goalsForm">
       <fieldset class="goal-mode-field">
-        <legend>Goal</legend>
+        <legend class="sr-only">Goal</legend>
         <div class="goal-mode-grid">
-          <label class="goal-choice">
+          <label class="goal-choice cut-choice">
             <input type="radio" name="goalMode" value="cut">
-            <span><strong>Cut</strong><small>Eat toward your chosen deficit target</small></span>
+            <span>
+              <b class="goal-icon">↓</b>
+              <strong>Cut</strong>
+              <small>Use the calorie target you chose for a deficit.</small>
+              <em>Lower target</em>
+            </span>
           </label>
-          <label class="goal-choice">
+
+          <label class="goal-choice maintain-choice">
             <input type="radio" name="goalMode" value="maintain" checked>
-            <span><strong>Maintain</strong><small>Stay around your chosen maintenance target</small></span>
+            <span>
+              <b class="goal-icon">↔</b>
+              <strong>Maintain</strong>
+              <small>Use the calorie target you chose to stay around maintenance.</small>
+              <em>Steady target</em>
+            </span>
           </label>
-          <label class="goal-choice">
+
+          <label class="goal-choice gain-choice">
             <input type="radio" name="goalMode" value="gain">
-            <span><strong>Gain</strong><small>Eat toward your chosen surplus target</small></span>
+            <span>
+              <b class="goal-icon">↑</b>
+              <strong>Gain</strong>
+              <small>Use the calorie target you chose for a surplus.</small>
+              <em>Higher target</em>
+            </span>
           </label>
         </div>
       </fieldset>
 
+      <div class="goals-divider"></div>
+
+      <div class="step-heading">
+        <span class="step-number">2</span>
+        <div>
+          <p class="eyebrow">ENTER TWO NUMBERS</p>
+          <h2>Your daily targets</h2>
+          <p class="muted">These are the numbers the planner follows. You do not need to enter anything per meal.</p>
+        </div>
+      </div>
+
       <div class="goal-number-grid">
-        <label>
-          Daily calories
-          <input id="dailyCalories" type="number" min="500" max="6000" step="25" inputmode="numeric" placeholder="e.g. 2400" required>
+        <label class="big-input-card">
+          <span>Daily calories</span>
+          <div class="input-with-unit">
+            <input id="dailyCalories" type="number" min="500" max="6000" step="25" inputmode="numeric" placeholder="2400" required>
+            <b>kcal</b>
+          </div>
         </label>
-        <label>
-          Daily protein (g)
-          <input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="e.g. 140" required>
+
+        <label class="big-input-card">
+          <span>Daily protein</span>
+          <div class="input-with-unit">
+            <input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="140" required>
+            <b>g</b>
+          </div>
         </label>
       </div>
 
       <div class="goal-explainer">
-        <strong>No per-meal math needed.</strong>
-        <p>If a location has 3 posted meals, the planner starts by splitting your daily goals across 3. If it has 4, it splits across 4. Then it searches the actual UCSC foods and serving sizes for the closest meal.</p>
+        <div class="explainer-icon">✓</div>
+        <div>
+          <strong>No per-meal math.</strong>
+          <p>The site looks at how many meals are posted for a location, creates a starting target for each meal, then searches the real UCSC menu and serving sizes for a close match.</p>
+        </div>
       </div>
 
       <p id="goalError" class="form-error" role="alert"></p>
 
       <div class="goal-actions">
-        <button class="primary-action" type="submit">Save goals and plan my meal →</button>
-        <button id="clearGoals" class="quiet-action" type="button">Clear goals</button>
+        <button class="primary-action big-save" type="submit">Save my goals and show my meals →</button>
+        <button id="clearGoals" class="quiet-action" type="button">Clear saved goals</button>
       </div>
     </form>
   </section>
 
   <section class="current-goals">
-    <span class="eyebrow">CURRENT SETUP</span>
-    <strong id="currentGoalSummary">No goals saved yet.</strong>
-    <p class="muted">Your settings stay in this browser. You can change them anytime without re-entering anything on the dining page.</p>
+    <div>
+      <span class="eyebrow">CURRENT SETUP</span>
+      <strong id="currentGoalSummary">No goals saved yet.</strong>
+      <p class="muted">Saved only in this browser. Change them whenever you want.</p>
+    </div>
+    <a class="button-link" href="./">Go to dining →</a>
   </section>
 
   <footer>
-    <span>The site does not calculate a calorie deficit, maintenance level, or surplus for you. It follows the targets you choose.</span>
+    <span>The site does not calculate your maintenance, deficit, or surplus for you. It follows the daily targets you enter.</span>
     <a href="./">Back to dining</a>
   </footer>
 </main>
