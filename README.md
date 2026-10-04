@@ -2,13 +2,23 @@
 
 A dark mode UCSC dining website with live campus menus plus an optional vegetarian meal planner for College Nine / John R. Lewis. Node 22+; no npm dependencies or API keys are required for the dining dashboard.
 
-## Run
+## Run locally
 
 ```sh
 node server.mjs
 ```
 
 Open http://127.0.0.1:3210. Run tests with `node --test`.
+
+## GitHub Pages
+
+The repository also includes a serverless GitHub Pages version of the dining dashboard.
+
+`.github/workflows/pages.yml` rebuilds and deploys the site on pushes to `main`, on manual runs, and twice each hour. The build script reads UCSC FoodPro on the GitHub Actions runner, writes a static snapshot of today's and all currently posted future menus, and publishes that snapshot to Pages. The browser still determines Santa Cruz time and the current regular serving period, so users do not need to select a date or meal before seeing useful results.
+
+The hosted version intentionally does not depend on the local Node HTTP server. Because GitHub Pages cannot run that server, the Pages build prefetches the short menu data instead. The local development version can still load per-item nutrition labels and the personal planner features that use server routes.
+
+One-time repository setup: Settings → Pages → Build and deployment → Source → GitHub Actions. GitHub Pages is available for public repositories on GitHub Free and for private repositories on plans that support private-repository Pages.
 
 ## Dining dashboard
 
@@ -22,8 +32,8 @@ The first screen is designed to require almost no input.
 * Automatically selects the meal that matches the current regular serving period when that period has a full menu.
 * Treats Continuous Dining as limited service and does not claim the complete Lunch or Dinner menu is available during that window.
 * Shows every published meal period as tabs, including Breakfast, Brunch, Lunch, Dinner, Late Night, or other names UCSC publishes.
-* Groups full menus by UCSC station/category and reads nutrition labels on demand for the selected location and meal.
-* Keeps food search, vegetarian filtering, nutrition sorting, manual location selection, and manual date selection available as optional controls.
+* Groups full menus by UCSC station/category.
+* Keeps food search, vegetarian filtering, manual location selection, and manual date selection available as optional controls.
 * Uses a dark interface by default and adapts to desktop and mobile screens.
 
 ### Regular serving schedules built in
@@ -48,7 +58,7 @@ Menu responses and nutrition labels are cached in memory for 10 minutes. A reque
 
 ## Personal planner
 
-The lower section of the website keeps the deterministic C9 vegetarian planner. It can:
+The local Node version keeps the deterministic C9 vegetarian planner. It can:
 
 * Plan C9 main meals around busy blocks, serving windows, and a travel buffer.
 * Filter verified date specific vegetarian foods, egg/dairy preferences, and named allergens.
