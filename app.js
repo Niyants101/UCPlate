@@ -1,29 +1,263 @@
-const $=id=>document.getElementById(id), key='college-bulk-v1';
-let saved;try{saved=JSON.parse(localStorage.getItem(key)||'{}');}catch{saved={};}
-let foods=Array.isArray(saved.items)?saved.items:[],plan=null;
-const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-$('date').value=saved.date||today;
-const defaults=[['breakfast','07:00','11:00'],['lunch','11:30','14:00'],['dinner','17:00','20:00']];
-for(const [period,start,end] of defaults){const div=document.createElement('div');div.className='window';div.dataset.period=period;div.innerHTML=`<label><input type="checkbox" class="confirmed"> ${period} · hours confirmed</label><div class="pair"><label>From<input class="start" type="time" value="${start}" required></label><label>Until<input class="end" type="time" value="${end}" required></label></div><label>Visit<select class="mode"><option value="dine-in">Dine in · 30 minutes</option><option value="eco-box">Eco-Box · 10 minutes</option></select></label>`;$('windows').append(div);const old=saved.meals?.find(m=>m.period===period);if(old){div.querySelector('.start').value=old.start;div.querySelector('.end').value=old.end;div.querySelector('.mode').value=old.mode;div.querySelector('.confirmed').checked=old.confirmedHours===true;}}
-for(const id of ['calories','protein','eggs','dairy','ecoAvailable','ecoPaid'])if(saved[id]!==undefined){if($(id).type==='checkbox')$(id).checked=saved[id];else $(id).value=saved[id]||'';}
-$('travel').value=saved.travelMinutes??15;$('allergens').value=(saved.allergens||[]).join(', ');$('busy').value=(saved.busy||[]).map(b=>`${b.start}-${b.end}`).join('\n');
-const split=s=>s.split(',').map(a=>a.trim().toLowerCase()).filter(Boolean);
-function read(){return {date:$('date').value,calories:Number($('calories').value),protein:Number($('protein').value),eggs:$('eggs').checked,dairy:$('dairy').checked,ecoAvailable:$('ecoAvailable').checked,ecoPaid:$('ecoPaid').checked,allergens:split($('allergens').value),travelMinutes:Number($('travel').value),busy:$('busy').value.split('\n').filter(s=>s.trim()).map(s=>{const [start,end]=s.trim().split('-').map(v=>v.trim());return {start,end};}),meals:[...document.querySelectorAll('.window')].map(d=>({period:d.dataset.period,start:d.querySelector('.start').value,end:d.querySelector('.end').value,mode:d.querySelector('.mode').value,confirmedHours:d.querySelector('.confirmed').checked})),items:foods};}
-function persist(){try{localStorage.setItem(key,JSON.stringify(read()));}catch{$('notice').textContent='Browser storage unavailable. Export your plan before closing.';}}
-function invalidate(){plan=null;$('export').disabled=true;$('plan').replaceChildren();const p=document.createElement('p');p.className='muted';p.textContent='Settings changed. Build your day to update the plan.';$('plan').append(p);}
-function renderFoods(){const date=$('date').value;$('foods').replaceChildren();const current=foods.filter(f=>f.date===date);$('emptyFoods').hidden=current.length>0;for(const f of current){const li=document.createElement('li'),text=document.createElement('span'),small=document.createElement('small'),remove=document.createElement('button');text.textContent=f.name;small.textContent=`${f.period} · ${f.serving} · ${f.calories} kcal · ${f.protein}g protein`;text.append(small);remove.textContent='Remove';remove.onclick=()=>{foods=foods.filter(x=>x!==f);persist();renderFoods();invalidate();};li.append(text,remove);$('foods').append(li);}}
-$('settings').addEventListener('change',()=>{persist();invalidate();renderFoods();});
-$('date').addEventListener('change',()=>{document.querySelectorAll('.confirmed').forEach(x=>x.checked=false);$('ecoAvailable').checked=false;persist();});
-$('suggest').onclick=()=>{const w=Number($('weight').value);if(w>=25&&w<=300){$('protein').value=Math.round(w*1.6);persist();invalidate();}else $('notice').textContent='Enter a body weight from 25 to 300 kg.';};
-$('foodForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);foods.push({date:$('date').value,name:f.get('name').trim(),period:f.get('period'),kind:f.get('kind'),serving:f.get('serving'),calories:Number(f.get('calories')),protein:Number(f.get('protein')),diet:f.get('diet'),eggs:f.has('eggs'),dairy:f.has('dairy'),allergens:split(f.get('allergens')),verified:f.has('verified'),source:$('menuLink').href});persist();renderFoods();invalidate();e.target.reset();};
-function element(tag,text,className){const e=document.createElement(tag);e.textContent=text;if(className)e.className=className;return e;}
-function renderPlan(){const root=$('plan');root.replaceChildren();const stats=element('div','','stats');stats.append(element('div',`${Math.round(plan.calories)} / ${plan.targets.calories} kcal planned`),element('div',`${Math.round(plan.protein)} / ${plan.targets.protein} g protein planned`));root.append(stats);let eaten={calories:0,protein:0};const consumed=element('p','Eaten: 0 kcal · 0 g protein','muted');root.append(consumed);for(const meal of plan.meals){const card=element('article','','meal');card.append(element('h3',`${meal.start} · ${meal.period}`),element('p',`${meal.location} · ${meal.mode==='eco-box'?'Pick up to go':'Dine in'} · visit ends ${meal.end}`));const list=element('ul','');for(const f of meal.foods)list.append(element('li',`${f.quantity} × ${f.name} (${f.serving}) — ${f.calories*f.quantity} kcal, ${Math.round(f.protein*f.quantity)} g protein`));card.append(list);const label=element('label',''),check=document.createElement('input');check.type='checkbox';check.onchange=()=>{const sign=check.checked?1:-1;eaten.calories+=sign*meal.calories;eaten.protein+=sign*meal.protein;consumed.textContent=`Eaten: ${Math.round(eaten.calories)} kcal · ${Math.round(eaten.protein)} g protein. Still needed: ${Math.max(0,plan.targets.calories-Math.round(eaten.calories))} kcal · ${Math.max(0,plan.targets.protein-Math.round(eaten.protein))} g protein.`;};label.append(check,document.createTextNode('I ate these portions'));card.append(label);root.append(card);}root.append(element('p',`Unfilled target: ${Math.round(plan.remaining.calories)} kcal · ${Math.round(plan.remaining.protein)} g protein. Add verified options or adjust portions; this planner does not invent a snack to close the gap.`,'muted'));const warnings=element('ul','','warnings');plan.warnings.forEach(w=>warnings.append(element('li',w)));root.append(warnings);}
-$('settings').onsubmit=async e=>{e.preventDefault();persist();try{const r=await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(read())});const data=await r.json();if(!r.ok)throw new Error(data.error);plan=data;renderPlan();$('export').disabled=false;$('notice').textContent='Plan updated. These are planned portions; tick a meal only after you eat it.';}catch(err){$('notice').textContent=err.message;}};
-$('export').onclick=()=>{if(!plan)return;const url=URL.createObjectURL(new Blob([JSON.stringify(plan,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`alvis-meals-${plan.date}.json`;a.click();URL.revokeObjectURL(url);};
-$('clear').onclick=()=>{if(confirm('Clear your targets, schedule and saved foods from this browser?')){localStorage.removeItem(key);location.reload();}};
-$('calendarImport').onclick=async()=>{const button=$('calendarImport'),date=$('date').value;button.disabled=true;try{const r=await fetch(`/api/calendar?date=${encodeURIComponent(date)}`),data=await r.json();if(!r.ok)throw new Error(data.error);if(date!==$('date').value)return;$('calendarStatus').textContent=data.message+(data.syncedAt?` Last read: ${new Date(data.syncedAt).toLocaleString()}`:'');if(data.status==='live'||data.status==='snapshot'){const manual=$('busy').value.split('\n').filter(Boolean);const combined=new Set([...manual,...data.busy.map(b=>`${b.start}-${b.end}`)]);$('busy').value=[...combined].join('\n');$('cafe').replaceChildren();for(const event of data.busy.filter(b=>/baskin/i.test(b.location||''))){const p=element('p',`After ${event.end}: Perk at Baskin is a nearby café candidate. Check opening hours and a vegetarian option; main meals stay at C9.`);const a=element('a','Check Perk hours & details ↗');a.href='https://dining.ucsc.edu/locations-hours/perk-baskin/';a.target='_blank';a.rel='noreferrer';p.append(a);$('cafe').append(p);}persist();invalidate();}}catch(err){$('calendarStatus').textContent=err.message;}finally{button.disabled=false;}};
-$('date').addEventListener('change',()=>{$('calendarStatus').textContent='Import availability for this date. Review and replace any old busy times.';$('cafe').replaceChildren();$('busy').value='';persist();});
-renderFoods();
+import {getServingStatus} from './dining-hours.mjs';
 
+const $=id=>document.getElementById(id);
+const el=(tag,text='',cls='')=>{const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;};
+const TZ='America/Los_Angeles';
+const PREF='college-bulk-pages-v1';
 
-import './menus-ui.js';
+let data=null;
+let activeDate=null;
+let selectedHall=null;
+let selectedMeal=null;
+let prefs={};
+try{prefs=JSON.parse(localStorage.getItem(PREF)||'{}');}catch{prefs={};}
+
+function campusParts(now=new Date()){
+  const fmt=new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'long',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+  const p=Object.fromEntries(fmt.formatToParts(now).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+  return {...p,date:`${p.year}-${p.month}-${p.day}`};
+}
+const today=campusParts().date;
+
+function dateLabel(date){
+  return new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(`${date}T12:00:00Z`));
+}
+function timeLabel(time){
+  if(!time)return '';
+  let [h,m]=time.split(':').map(Number);
+  const suffix=h>=12?'PM':'AM';
+  h=h%12||12;
+  return `${h}${m?`:${String(m).padStart(2,'0')}`:''} ${suffix}`;
+}
+function savePrefs(){
+  try{localStorage.setItem(PREF,JSON.stringify({hall:selectedHall,vegetarian:$('vegetarianOnly').checked,sort:$('menuSort').value}));}catch{}
+}
+function snapshotAge(){
+  if(!data?.generatedAt)return '';
+  const minutes=Math.max(0,Math.round((Date.now()-new Date(data.generatedAt).getTime())/60000));
+  if(minutes<2)return 'Menu snapshot refreshed just now.';
+  if(minutes<60)return `Menu snapshot refreshed ${minutes} minutes ago.`;
+  const hours=Math.floor(minutes/60);
+  return `Menu snapshot refreshed about ${hours} hour${hours===1?'':'s'} ago.`;
+}
+function updateClock(){
+  const p=campusParts();
+  $('campusClock').textContent=`${p.weekday.toUpperCase()} · ${new Intl.DateTimeFormat('en-US',{timeZone:TZ,month:'long',day:'numeric'}).format(new Date())} · ${Number(p.hour)%12||12}:${p.minute} ${Number(p.hour)>=12?'PM':'AM'}`;
+  $('snapshotAge').textContent=snapshotAge();
+  $('dateContext').textContent=activeDate===today?'RIGHT NOW':'BROWSING AHEAD';
+}
+function currentDay(){return data?.dates?.[activeDate]||null;}
+function locationById(id){return currentDay()?.locations.find(x=>x.id===id)||null;}
+function serving(location){return getServingStatus(activeDate,location.id,new Date());}
+function rank(location){
+  const state=serving(location).state;
+  const stateRank={open:0,limited:1,unknown:2,scheduled:3,closed:4}[state]??5;
+  return stateRank+(location.status==='live'?0:10);
+}
+function servingText(location){
+  const s=serving(location);
+  if(s.state==='open')return `${s.label} until ${timeLabel(s.end)}`;
+  if(s.state==='limited')return `Continuous Dining until ${timeLabel(s.end)} · limited options`;
+  if(s.state==='closed'){
+    if(!s.next)return 'Closed on the regular schedule';
+    const when=s.next.date===activeDate?'today':s.next.date===today?'today':'next';
+    return `Closed · ${s.next.name} ${when} at ${timeLabel(s.next.start)}`;
+  }
+  if(s.state==='scheduled')return s.schedule?.length?`Regular schedule · ${s.schedule[0].name} starts ${timeLabel(s.schedule[0].start)}`:'Closed on regular schedule';
+  return 'Menu available · serving hours not built in';
+}
+function relevantMeal(location){
+  if(!location.meals?.length)return null;
+  const s=serving(location);
+  if(s.state==='open'){
+    const exact=location.meals.find(m=>m.name.toLowerCase()===s.label.toLowerCase());
+    if(exact)return exact;
+  }
+  if(s.state==='limited'&&s.next){
+    const next=location.meals.find(m=>m.name.toLowerCase()===s.next.name.toLowerCase());
+    if(next)return next;
+  }
+  return location.meals[0];
+}
+function renderDates(){
+  const dates=Object.keys(data.dates).sort();
+  if(!dates.includes(activeDate))activeDate=dates.includes(today)?today:dates[0];
+  $('menuDate').replaceChildren(...dates.map(date=>{
+    const option=el('option',date===today?`Today · ${dateLabel(date)}`:dateLabel(date));
+    option.value=date;
+    return option;
+  }));
+  $('menuDate').value=activeDate;
+  const i=dates.indexOf(activeDate);
+  $('datePrev').disabled=i<=0;
+  $('dateNext').disabled=i<0||i>=dates.length-1;
+  $('dateToday').disabled=activeDate===today||!dates.includes(today);
+  $('datePrev').onclick=()=>{if(i>0){activeDate=dates[i-1];selectedMeal=null;render();}};
+  $('dateNext').onclick=()=>{if(i>=0&&i<dates.length-1){activeDate=dates[i+1];selectedMeal=null;render();}};
+  $('dateToday').onclick=()=>{if(dates.includes(today)){activeDate=today;selectedMeal=null;render();}};
+  $('menuDate').onchange=()=>{activeDate=$('menuDate').value;selectedMeal=null;render();};
+}
+function renderOverview(){
+  const root=$('diningOverview');root.replaceChildren();
+  const day=currentDay();if(!day)return;
+  const locations=[...day.locations].sort((a,b)=>rank(a)-rank(b)||a.name.localeCompare(b.name));
+  for(const location of locations){
+    const s=serving(location);
+    const card=document.createElement('button');
+    card.type='button';
+    card.className=`dining-card status-${s.state} ${location.id===selectedHall?'selected':''}`;
+    const top=el('div','','card-top');
+    top.append(el('strong',location.name),el('span',s.state==='scheduled'?'future':s.state,'status-badge'));
+    card.append(top,el('p',servingText(location),'serving-line'));
+    if(location.status!=='live'){
+      card.append(el('p',location.message||'No menu posted for this date.','card-message'));
+    }else if(s.state==='limited'){
+      card.append(el('p','Limited entrée options may include grill, pizza, salad bar, beverages and desserts.','card-message'));
+    }else{
+      const meal=relevantMeal(location);
+      if(meal){
+        card.append(el('span',meal.name,'preview-label'));
+        const preview=el('div','','food-preview');
+        meal.items.slice(0,4).forEach(item=>preview.append(el('span',item.name)));
+        card.append(preview);
+        if(meal.items.length>4)card.append(el('small',`+ ${meal.items.length-4} more in ${meal.name}`));
+      }else if(location.meals?.length){
+        card.append(el('small',`Posted meals: ${location.meals.map(m=>m.name).join(' · ')}`));
+      }
+    }
+    card.onclick=()=>{selectedHall=location.id;selectedMeal=null;savePrefs();render();};
+    root.append(card);
+  }
+  $('locationCount').textContent=`${day.locations.filter(x=>x.status==='live').length} locations with a posted menu for this date`;
+}
+function renderHallSelect(){
+  const day=currentDay();if(!day)return;
+  $('hall').replaceChildren(...day.locations.map(location=>{const o=el('option',location.name);o.value=location.id;return o;}));
+  $('hall').value=selectedHall;
+  $('hall').onchange=()=>{selectedHall=$('hall').value;selectedMeal=null;savePrefs();render();};
+}
+function renderSchedule(location){
+  const root=$('selectedSchedule');root.replaceChildren();
+  const schedule=location.schedule;
+  if(schedule===null){root.append(el('p','Serving hours are not built in for this café or market yet. The posted menu is still shown below.','muted'));return;}
+  if(!schedule?.length){root.append(el('p','Closed on the regular serving schedule for this day.','muted'));return;}
+  const strip=el('div','','schedule-strip');
+  schedule.forEach(item=>{
+    const block=el('div','',item.limited?'schedule-slot limited':'schedule-slot');
+    block.append(el('strong',item.name),el('span',`${timeLabel(item.start)} to ${timeLabel(item.end)}`));
+    strip.append(block);
+  });
+  root.append(strip);
+}
+function chooseMeal(location){
+  if(selectedMeal&&location.meals.some(m=>m.name===selectedMeal))return selectedMeal;
+  return relevantMeal(location)?.name||location.meals?.[0]?.name||'';
+}
+function renderMealTabs(location){
+  const names=location.meals.map(m=>m.name);
+  selectedMeal=chooseMeal(location);
+  $('mealTabs').replaceChildren(...names.map(name=>{
+    const b=el('button',name,`meal-tab ${name===selectedMeal?'active':''}`);
+    b.type='button';
+    b.onclick=()=>{selectedMeal=name;renderDetail();};
+    return b;
+  }));
+  $('menuMeal').replaceChildren(...names.map(name=>{const o=el('option',name);o.value=name;return o;}));
+  $('menuMeal').value=selectedMeal;
+  $('menuMeal').onchange=()=>{selectedMeal=$('menuMeal').value;renderDetail();};
+}
+function renderMenuItems(location){
+  const root=$('menuItems');root.replaceChildren();
+  const meal=location.meals.find(m=>m.name===selectedMeal);
+  if(!meal){root.append(el('p','No menu is posted for this meal.','menu-empty'));return;}
+  const query=$('menuSearch').value.trim().toLowerCase();
+  let items=meal.items.filter(item=>(!$('vegetarianOnly').checked||['vegan','vegetarian'].includes(item.diet))&&item.name.toLowerCase().includes(query));
+  if($('menuSort').value==='alpha')items=[...items].sort((a,b)=>a.name.localeCompare(b.name));
+  if(!items.length){root.append(el('p',meal.items.length?'No foods match these filters.':'No items are posted for this meal.','menu-empty'));return;}
+  root.append(el('p',`${items.length} foods · ${meal.name} · ${dateLabel(activeDate)}`,'menu-count'));
+  const groups=new Map();
+  for(const item of items){
+    const key=$('menuSort').value==='alpha'?'All foods':(item.section||'Menu');
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(item);
+  }
+  for(const [section,foods] of groups){
+    const wrap=el('section','','station-section');
+    wrap.append(el('h3',section));
+    const grid=el('div','','station-items');
+    foods.forEach(item=>{
+      const row=el('div','','static-food-row');
+      const name=el('span',item.name,'static-food-name');
+      const tag=el('span',item.diet==='vegan'?'Vegan':item.diet==='vegetarian'?'Vegetarian':'',`diet-tag ${item.diet}`);
+      row.append(name);
+      if(tag.textContent)row.append(tag);
+      grid.append(row);
+    });
+    wrap.append(grid);root.append(wrap);
+  }
+}
+function detailMessage(location){
+  const s=serving(location);
+  if(activeDate!==today)return `Showing ${selectedMeal} for ${dateLabel(activeDate)}.`;
+  if(s.state==='limited')return `Continuous Dining is happening now. ${selectedMeal} is shown for planning, but the limited selection may be different.`;
+  if(s.state==='closed')return `This location is closed right now on its regular schedule. ${selectedMeal} is shown so you can plan ahead.`;
+  if(s.state==='unknown')return 'The menu is posted, but verified serving hours are not built in for this location yet.';
+  return `${s.label} is happening now on the regular schedule.`;
+}
+function renderDetail(){
+  const location=locationById(selectedHall);
+  if(!location)return;
+  $('selectedLocationName').textContent=location.name;
+  $('selectedLocationStatus').textContent=servingText(location);
+  renderSchedule(location);
+  renderMealTabs(location);
+  $('menuStatus').textContent=location.status==='live'?detailMessage(location):(location.message||'No menu posted for this date.');
+  $('menuLink').href=location.source||'#';
+  $('menuUpdated').textContent=snapshotAge();
+  renderMenuItems(location);
+}
+function ensureSelection(){
+  const day=currentDay();if(!day?.locations?.length)return;
+  if(!selectedHall||!day.locations.some(x=>x.id===selectedHall)){
+    selectedHall=[...day.locations].sort((a,b)=>rank(a)-rank(b)||a.name.localeCompare(b.name))[0].id;
+  }
+}
+function render(){
+  ensureSelection();
+  renderDates();
+  updateClock();
+  renderOverview();
+  renderHallSelect();
+  renderDetail();
+  $('dashboardStatus').textContent=`Menu snapshot generated ${new Date(data.generatedAt).toLocaleString()}. GitHub refreshes it automatically throughout the day.`;
+}
+async function loadData(bust=false){
+  $('refresh').disabled=true;
+  $('dashboardStatus').textContent='Loading UCSC menu snapshot…';
+  try{
+    const response=await fetch(`./data/menus.json${bust?`?t=${Date.now()}`:''}`,{cache:bust?'no-store':'default'});
+    if(!response.ok)throw new Error('Could not load the published menu snapshot.');
+    data=await response.json();
+    const dates=Object.keys(data.dates||{}).sort();
+    if(!dates.length)throw new Error('No published menu dates are available.');
+    activeDate=activeDate&&dates.includes(activeDate)?activeDate:(dates.includes(today)?today:dates[0]);
+    render();
+  }catch(error){
+    $('dashboardStatus').textContent=`Dining menus unavailable: ${error.message}`;
+    $('diningOverview').replaceChildren(el('p','The published menu snapshot could not be loaded. Try again in a moment.','menu-empty'));
+  }finally{
+    $('refresh').disabled=false;
+  }
+}
+
+$('vegetarianOnly').checked=prefs.vegetarian===true;
+$('menuSort').value=prefs.sort||'station';
+selectedHall=prefs.hall||null;
+$('vegetarianOnly').onchange=()=>{savePrefs();renderMenuItems(locationById(selectedHall));};
+$('menuSort').onchange=()=>{savePrefs();renderMenuItems(locationById(selectedHall));};
+$('menuSearch').oninput=()=>renderMenuItems(locationById(selectedHall));
+$('refresh').onclick=()=>loadData(true);
+
+updateClock();
+setInterval(()=>{updateClock();if(activeDate===today&&data)render();},60*1000);
+loadData();
