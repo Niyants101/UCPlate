@@ -165,3 +165,52 @@ a.static-food-name:hover{color:var(--accent);text-decoration:underline}
   .bulk-metrics{display:grid;grid-template-columns:1fr 1fr}
   .bulk-metric{min-width:0}
 }
+
+.site-nav{display:flex;gap:6px;align-items:center}
+.site-nav a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:800;padding:8px 11px;border-radius:9px;border:1px solid transparent}
+.site-nav a:hover{color:var(--text);background:var(--panel)}
+.site-nav a.active{color:var(--accent);background:var(--accent-soft);border-color:rgba(183,236,114,.18)}
+.button-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:10px 14px;border-radius:10px;border:1px solid var(--line-strong);background:var(--panel-3);color:var(--text);font-size:12px;font-weight:800}
+.button-link:hover{border-color:#496051;background:#1a281f}
+.goal-link-row{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.goal-link-row .muted{margin:0}
+.goals-page{max-width:960px}
+.goals-hero{padding:64px 0 32px}
+.goals-hero h1{max-width:700px}
+.goals-card{padding:28px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,var(--panel-2),#0d140f);box-shadow:0 20px 70px rgba(0,0,0,.22)}
+.goals-copy{max-width:650px}
+.goals-copy h2{margin-bottom:8px}
+.goal-mode-field{border:0;padding:0;margin:28px 0 0}
+.goal-mode-field legend{font-size:12px;font-weight:800;color:#d9e1db;margin-bottom:10px}
+.goal-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.goal-choice{margin:0;position:relative;cursor:pointer}
+.goal-choice input{position:absolute;opacity:0;pointer-events:none}
+.goal-choice span{display:block;min-height:96px;padding:15px;border:1px solid var(--line);border-radius:13px;background:#0b110d;transition:.16s ease}
+.goal-choice strong{display:block;font-size:15px;color:var(--text)}
+.goal-choice small{display:block;margin-top:6px;color:var(--muted);line-height:1.45}
+.goal-choice input:checked+span{border-color:var(--accent);background:rgba(183,236,114,.08);box-shadow:0 0 0 1px rgba(183,236,114,.16) inset}
+.goal-number-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.goal-number-grid label{margin:0}
+.goal-number-grid input{font-size:18px;font-weight:750}
+.goal-explainer{margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#0b110d}
+.goal-explainer strong{font-size:13px}
+.goal-explainer p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.goal-actions{display:flex;gap:10px;align-items:center;margin-top:20px}
+.primary-action{background:var(--accent);color:#10200f;border-color:var(--accent);padding:12px 16px}
+.primary-action:hover{background:#c7f58c;border-color:#c7f58c}
+.quiet-action{background:transparent}
+.form-error{min-height:20px;margin:10px 0 0;color:#ffaaa1;font-size:12px}
+.current-goals{margin:18px 0 0;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.current-goals strong{display:block;font-size:17px;margin:7px 0}
+@media(max-width:720px){
+  .site-nav{gap:2px}
+  .site-nav a{padding:7px 9px}
+  .goal-link-row{align-items:flex-start;flex-direction:column}
+  .goals-hero{padding:42px 0 24px}
+  .goals-card{padding:20px}
+  .goal-mode-grid{grid-template-columns:1fr}
+  .goal-choice span{min-height:0}
+  .goal-number-grid{grid-template-columns:1fr}
+  .goal-actions{align-items:stretch;flex-direction:column}
+  .goal-actions button{width:100%}
+}
