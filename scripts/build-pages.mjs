@@ -37,7 +37,10 @@ for(const date of dates){
   };
 }
 
-const json=JSON.stringify(data);\nawait writeFile(new URL('./data/menus.json',out),json);\nawait mkdir(new URL('../data/',import.meta.url),{recursive:true});\nawait writeFile(new URL('../data/menus.json',import.meta.url),json);
+const json=JSON.stringify(data);
+await writeFile(new URL('./data/menus.json',out),json);
+await mkdir(new URL('../data/',import.meta.url),{recursive:true});
+await writeFile(new URL('../data/menus.json',import.meta.url),json);
 await copyFile(new URL('index.html',pages),new URL('index.html',out));
 await copyFile(new URL('app.js',pages),new URL('app.js',out));
 await copyFile(new URL('style.css',pages),new URL('style.css',out));
