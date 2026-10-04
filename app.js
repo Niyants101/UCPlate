@@ -102,13 +102,19 @@ function relevantMeal(location){
   }
   return location.meals[0];
 }
-function nutritionItems(location){
-  return location?.bulk?.items?.filter(item=>
+function nutritionItems(location,mealName){
+  const meal=location?.meals?.find(item=>item.name===mealName);
+  const exact=meal?.items?.some(item=>
+    item.calories!==null&&item.calories!==undefined&&
+    item.protein!==null&&item.protein!==undefined&&
+    typeof item.source==='string'
+  )?meal.items:(location?.bulk?.items||[]);
+  return exact.filter(item=>
     item.calories!==null&&item.calories!==undefined&&
     item.protein!==null&&item.protein!==undefined&&
     Number.isFinite(Number(item.calories))&&Number(item.calories)>0&&
     Number.isFinite(Number(item.protein))&&Number(item.protein)>=0
-  )||[];
+  );
 }
 function candidatePool(items,vegetarianOnly){
   let candidates=items.filter(item=>!vegetarianOnly||['vegan','vegetarian'].includes(item.diet));
@@ -120,10 +126,10 @@ function candidatePool(items,vegetarianOnly){
   take([...candidates].sort((a,b)=>Number(b.calories)-Number(a.calories)),8);
   return [...unique.values()];
 }
-function buildBulkPlan(location){
+function buildBulkPlan(location,mealName=location?.bulk?.meal){
   const targets=bulkTargets();
   const vegetarianOnly=$('vegetarianOnly')?.checked===true;
-  const candidates=candidatePool(nutritionItems(location),vegetarianOnly);
+  const candidates=candidatePool(nutritionItems(location,mealName),vegetarianOnly);
   if(!candidates.length)return null;
 
   const score=(state,final=false)=>{
@@ -166,13 +172,14 @@ function buildBulkPlan(location){
   const best=viable.sort((a,b)=>score(a,true)-score(b,true))[0];
   return {...best,targets};
 }
-function bulkModeText(location){
-  if(!location.bulk)return '';
+function bulkModeText(location,mealName){
+  if(!location.bulk)return `Built from the posted ${mealName} menu.`;
+  if(mealName!==location.bulk.meal)return `Built from the posted ${mealName} menu.`;
   const state=serving(location).state;
-  if(location.bulk.mode==='now'&&state==='open')return `Built for ${location.bulk.meal}, the meal being served now.`;
-  if(state==='limited')return `Continuous Dining is limited right now. This plan is for ${location.bulk.meal}, not the limited selection.`;
-  if(location.bulk.mode==='next')return `Built for ${location.bulk.meal}, the next useful posted meal for this location.`;
-  return `Built from the posted ${location.bulk.meal} menu.`;
+  if(location.bulk.mode==='now'&&state==='open')return `Built for ${mealName}, the meal being served now.`;
+  if(state==='limited')return `Continuous Dining is limited right now. This plan is for ${mealName}, not the limited selection.`;
+  if(location.bulk.mode==='next')return `Built for ${mealName}, the next useful posted meal for this location.`;
+  return `Built from the posted ${mealName} menu.`;
 }
 function nutritionLink(item){
   return typeof item?.source==='string'&&/nutrition\.sa\.ucsc\.edu\/label\.aspx/i.test(item.source)?item.source:null;
@@ -194,14 +201,15 @@ function renderBulkPlan(location){
     root.append(box);
     return;
   }
-  if(!location.bulk?.items?.length){
-    $('bulkSubtitle').textContent='This location does not have enough readable UCSC nutrition data for an automatic plan yet.';
+  const mealForPlan=selectedMeal||location.bulk?.meal||location.meals?.[0]?.name;
+  if(!nutritionItems(location,mealForPlan).length){
+    $('bulkSubtitle').textContent='This meal does not have enough readable UCSC nutrition data for an automatic plan yet.';
     root.append(el('p','The menu is still available below. The planner will not invent calories or protein when UCSC does not publish a readable label.','menu-empty'));
     return;
   }
 
-  const plan=buildBulkPlan(location);
-  $('bulkSubtitle').textContent=`${bulkModeText(location)} Click any planned food to open its exact UCSC nutrition label.`;
+  const plan=buildBulkPlan(location,mealForPlan);
+  $('bulkSubtitle').textContent=`${bulkModeText(location,mealForPlan)} Click any planned food to open its exact UCSC nutrition label.`;
   if(!plan){
     root.append(el('p',$('vegetarianOnly').checked?'No vegetarian items with readable calories and protein can make a reliable plan for this meal.':'Not enough readable calories and protein are available to build a reliable plan.','menu-empty'));
     return;
@@ -277,7 +285,7 @@ function renderOverview(){
     top.append(el('strong',location.name),el('span',s.state==='scheduled'?'future':s.state,'status-badge'));
     card.append(top,el('p',servingText(location),'serving-line'));
 
-    const autoPlan=activeDate===today?buildBulkPlan(location):null;
+    const autoPlan=activeDate===today?buildBulkPlan(location,location.bulk?.meal):null;
     if(autoPlan){
       const mini=el('div','','bulk-mini');
       mini.append(el('span',location.bulk?.mode==='now'?'AUTO BULK':'NEXT BULK','bulk-mini-label'));
