@@ -1,3 +1,11 @@
+if(!document.querySelector('link[data-recommendation-carousel]')){
+  const stylesheet=document.createElement('link');
+  stylesheet.rel='stylesheet';
+  stylesheet.href='./recommendation-carousel.css';
+  stylesheet.dataset.recommendationCarousel='1';
+  document.head.append(stylesheet);
+}
+
 const root=document.getElementById('bulkPlan');
 
 function button(label,className,aria){
@@ -12,7 +20,6 @@ function enhanceRecommendations(){
 
   const slides=[];
   list.querySelectorAll('.station-plan').forEach(station=>{
-    const head=station.querySelector('.station-plan-head');
     const stationName=station.querySelector('.station-plan-title h3')?.textContent?.trim()||'Station';
     const theme=station.querySelector('.station-theme')?.textContent?.trim()||'';
     station.querySelectorAll('.plate-option').forEach((option,index)=>{
@@ -78,7 +85,6 @@ function enhanceRecommendations(){
     count.textContent=`${current+1} of ${slides.length}`;
     label.textContent=slides[current].label;
     dotButtons.forEach((dot,i)=>dot.classList.toggle('active',i===current));
-    prev.disabled=false;next.disabled=false;
   }
 
   prev.addEventListener('click',()=>show(current-1));
