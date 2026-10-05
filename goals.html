@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
-  <title>Goals · College Fuel</title>
+  <title>My Plan · College Fuel</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./ux.css">
   <script type="module" src="./goals.js"></script>
 </head>
 <body>
@@ -14,78 +15,95 @@
   <a class="brand" href="./">COLLEGE FUEL</a>
   <nav class="site-nav" aria-label="Main navigation">
     <a href="./">Dining</a>
-    <a class="active" href="./goals.html">Goals</a>
+    <a class="active" href="./goals.html">My Plan</a>
   </nav>
 </header>
 
-<main class="goals-page">
-  <section class="goals-hero">
-    <p class="eyebrow">SET ONCE · USE EVERY MEAL</p>
-    <h1>Your goals.<br><em>That’s it.</em></h1>
-    <p class="intro">Tell the planner your daily calories and protein. It will automatically turn those into meal targets using the meals posted at the dining location you choose.</p>
+<main class="goals-page onboarding-page">
+  <section class="goals-hero onboarding-hero">
+    <p class="eyebrow" id="setupEyebrow">SET UP ONCE</p>
+    <h1 id="setupTitle">Make every menu<br><em>fit you.</em></h1>
+    <p class="intro" id="setupIntro">Give College Fuel your goals and food preferences once. After that, opening the dining page should be enough.</p>
   </section>
 
-  <section class="goals-card">
-    <div class="goals-copy">
-      <p class="eyebrow">MEAL PLAN SETTINGS</p>
-      <h2>What are you aiming for?</h2>
-      <p class="muted">Cut, maintain, or gain is just a label for your plan. The numbers you enter below are what the meal planner actually follows.</p>
+  <section class="onboarding-shell">
+    <div class="onboarding-progress" aria-label="Setup progress">
+      <button type="button" class="progress-step active" data-go-step="1"><span>1</span><b>Goals</b></button>
+      <div class="progress-line"></div>
+      <button type="button" class="progress-step" data-go-step="2"><span>2</span><b>Eating style</b></button>
+      <div class="progress-line"></div>
+      <button type="button" class="progress-step" data-go-step="3"><span>3</span><b>Safety</b></button>
     </div>
 
-    <form id="goalsForm">
-      <fieldset class="goal-mode-field">
-        <legend>Goal</legend>
-        <div class="goal-mode-grid">
-          <label class="goal-choice">
-            <input type="radio" name="goalMode" value="cut">
-            <span><strong>Cut</strong><small>Eat toward your chosen deficit target</small></span>
-          </label>
-          <label class="goal-choice">
-            <input type="radio" name="goalMode" value="maintain" checked>
-            <span><strong>Maintain</strong><small>Stay around your chosen maintenance target</small></span>
-          </label>
-          <label class="goal-choice">
-            <input type="radio" name="goalMode" value="gain">
-            <span><strong>Gain</strong><small>Eat toward your chosen surplus target</small></span>
-          </label>
+    <form id="profileForm" class="goals-card onboarding-card">
+      <section class="wizard-step active" data-step="1">
+        <div class="step-heading">
+          <span class="step-number">1</span>
+          <div>
+            <p class="eyebrow">YOUR TARGET</p>
+            <h2>What are you aiming for?</h2>
+            <p class="muted">The label helps describe your plan. The calories and protein you enter are the numbers the meal helper actually follows.</p>
+          </div>
         </div>
-      </fieldset>
 
-      <div class="goal-number-grid">
-        <label>
-          Daily calories
-          <input id="dailyCalories" type="number" min="500" max="6000" step="25" inputmode="numeric" placeholder="e.g. 2400" required>
-        </label>
-        <label>
-          Daily protein (g)
-          <input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="e.g. 140" required>
-        </label>
-      </div>
+        <fieldset class="goal-mode-field">
+          <legend class="sr-only">Goal</legend>
+          <div class="goal-mode-grid">
+            <label class="goal-choice cut-choice"><input type="radio" name="goalMode" value="cut"><span><b class="goal-icon">↓</b><strong>Cut</strong><small>Use the daily calorie target you chose for a deficit.</small><em>Lower target</em></span></label>
+            <label class="goal-choice maintain-choice"><input type="radio" name="goalMode" value="maintain" checked><span><b class="goal-icon">↔</b><strong>Maintain</strong><small>Use the daily target you chose to stay around maintenance.</small><em>Steady target</em></span></label>
+            <label class="goal-choice gain-choice"><input type="radio" name="goalMode" value="gain"><span><b class="goal-icon">↑</b><strong>Gain</strong><small>Use the daily calorie target you chose for a surplus.</small><em>Higher target</em></span></label>
+          </div>
+        </fieldset>
 
-      <div class="goal-explainer">
-        <strong>No per-meal math needed.</strong>
-        <p>If a location has 3 posted meals, the planner starts by splitting your daily goals across 3. If it has 4, it splits across 4. Then it searches the actual UCSC foods and serving sizes for the closest meal.</p>
-      </div>
+        <div class="goal-number-grid onboarding-numbers">
+          <label class="big-input-card"><span>Daily calories</span><div class="input-with-unit"><input id="dailyCalories" type="number" min="500" max="6000" step="25" inputmode="numeric" placeholder="2400" required><b>kcal</b></div></label>
+          <label class="big-input-card"><span>Daily protein</span><div class="input-with-unit"><input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="140" required><b>g</b></div></label>
+        </div>
+
+        <div class="goal-explainer"><div class="explainer-icon">✓</div><div><strong>No per-meal math.</strong><p>College Fuel turns your daily targets into a starting target for the current meal, then searches the actual UCSC station foods for a close plate.</p></div></div>
+      </section>
+
+      <section class="wizard-step" data-step="2" hidden>
+        <div class="step-heading"><span class="step-number">2</span><div><p class="eyebrow">EATING STYLE</p><h2>What foods should we consider?</h2><p class="muted">This changes every recommendation automatically. You can edit it anytime.</p></div></div>
+        <fieldset class="diet-field">
+          <legend class="sr-only">Eating style</legend>
+          <div class="diet-choice-grid">
+            <label class="diet-choice"><input type="radio" name="dietPreference" value="omnivore" checked><span><b>Everything</b><small>Use any menu item that passes your allergy and avoid-food filters.</small></span></label>
+            <label class="diet-choice"><input type="radio" name="dietPreference" value="vegetarian"><span><b>Vegetarian</b><small>Only recommend foods UCSC marks vegetarian or vegan.</small></span></label>
+            <label class="diet-choice"><input type="radio" name="dietPreference" value="vegan"><span><b>Vegan</b><small>Only recommend foods UCSC marks vegan.</small></span></label>
+          </div>
+        </fieldset>
+        <div class="preference-preview"><span class="tag">AUTOMATIC</span><strong>You will not need to set this again on the dining page.</strong><p>When you switch dining halls or meal periods, the recommendations keep using this preference in the background.</p></div>
+      </section>
+
+      <section class="wizard-step" data-step="3" hidden>
+        <div class="step-heading"><span class="step-number">3</span><div><p class="eyebrow">ALLERGIES & AVOIDS</p><h2>What should never be recommended?</h2><p class="muted">Select anything that applies. Recommendations with a matching UCSC-published allergen label are removed.</p></div></div>
+        <fieldset class="allergy-field">
+          <legend>Published allergens to exclude</legend>
+          <div class="allergy-chip-grid">
+            <label><input type="checkbox" name="allergen" value="milk"><span>Milk</span></label>
+            <label><input type="checkbox" name="allergen" value="egg"><span>Egg</span></label>
+            <label><input type="checkbox" name="allergen" value="wheat-gluten"><span>Wheat / Gluten</span></label>
+            <label><input type="checkbox" name="allergen" value="soy"><span>Soy</span></label>
+            <label><input type="checkbox" name="allergen" value="peanut"><span>Peanut</span></label>
+            <label><input type="checkbox" name="allergen" value="tree-nut"><span>Tree nuts</span></label>
+            <label><input type="checkbox" name="allergen" value="sesame"><span>Sesame</span></label>
+            <label><input type="checkbox" name="allergen" value="fish"><span>Fish</span></label>
+            <label><input type="checkbox" name="allergen" value="shellfish"><span>Shellfish</span></label>
+          </div>
+        </fieldset>
+        <label class="avoid-foods-card"><span>Foods you personally avoid</span><small>Optional. Separate with commas. Example: pork, mushrooms, mayo</small><textarea id="avoidFoods" rows="3" placeholder="pork, mushrooms"></textarea></label>
+        <div class="allergy-note"><strong>Allergy safety note</strong><p>College Fuel can filter using UCSC's published labels, but it cannot verify cross-contact, substitutions, or special preparation. For serious allergies, confirm with dining staff before eating.</p></div>
+      </section>
 
       <p id="goalError" class="form-error" role="alert"></p>
-
-      <div class="goal-actions">
-        <button class="primary-action" type="submit">Save goals and plan my meal →</button>
-        <button id="clearGoals" class="quiet-action" type="button">Clear goals</button>
-      </div>
+      <div class="wizard-actions"><button id="wizardBack" class="quiet-action" type="button" hidden>← Back</button><button id="wizardNext" class="primary-action big-save" type="button">Continue →</button><button id="wizardSave" class="primary-action big-save" type="submit" hidden>Save my plan and show dining →</button></div>
     </form>
   </section>
 
-  <section class="current-goals">
-    <span class="eyebrow">CURRENT SETUP</span>
-    <strong id="currentGoalSummary">No goals saved yet.</strong>
-    <p class="muted">Your settings stay in this browser. You can change them anytime without re-entering anything on the dining page.</p>
-  </section>
+  <section class="current-goals current-profile"><div><span class="eyebrow">SAVED PROFILE</span><strong id="currentGoalSummary">No plan saved yet.</strong><p id="currentPreferenceSummary" class="muted">Your settings stay in this browser.</p></div><button id="clearGoals" class="quiet-action" type="button">Clear profile</button></section>
 
-  <footer>
-    <span>The site does not calculate a calorie deficit, maintenance level, or surplus for you. It follows the targets you choose.</span>
-    <a href="./">Back to dining</a>
-  </footer>
+  <footer><span>Your plan is stored only in this browser. College Fuel follows the targets you enter and does not calculate a deficit, maintenance level, or surplus for you.</span><a href="./">Back to dining</a></footer>
 </main>
 </body>
 </html>

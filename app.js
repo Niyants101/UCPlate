@@ -1,16 +1,53 @@
 import {getServingStatus} from './dining-hours.mjs';
+import {generateStationPlates} from './plate-planner.mjs';
 
 const $=id=>document.getElementById(id);
 const el=(tag,text='',cls='')=>{const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;};
 const TZ='America/Los_Angeles';
 const PREF='college-bulk-pages-v2';
+const DINING_HALL_IDS=new Set(['40','05','20','25','30']);
+const ALLERGEN_GROUPS={
+  milk:['milk','dairy'],egg:['egg'],'wheat-gluten':['wheat','gluten'],soy:['soy'],peanut:['peanut'],
+  'tree-nut':['tree nut','treenut','almond','cashew','walnut','pecan','pistachio','hazelnut'],
+  sesame:['sesame'],fish:['fish'],shellfish:['shellfish','shrimp','crab','lobster','mollusk']
+};
+const ALLERGEN_LABELS={milk:'Milk',egg:'Egg','wheat-gluten':'Wheat / Gluten',soy:'Soy',peanut:'Peanut','tree-nut':'Tree nuts',sesame:'Sesame',fish:'Fish',shellfish:'Shellfish'};
 
-let data=null;
-let activeDate=null;
-let selectedHall=null;
-let selectedMeal=null;
 let prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF)||'{}');}catch{prefs={};}
+const needsSetup=!prefs.onboardingComplete;
+
+let indexData=null;
+let dayData=null;
+let activeDate=null;
+let selectedHall=prefs.hall||null;
+let selectedMeal=null;
+let detailToken=0;
+const dayCache=new Map();
+const detailCache=new Map();
+const detailPromises=new Map();
+
+const norm=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function profile(){
+  return {
+    dietPreference:prefs.dietPreference||'omnivore',
+    allergens:Array.isArray(prefs.allergens)?prefs.allergens:[],
+    avoidFoods:Array.isArray(prefs.avoidFoods)?prefs.avoidFoods:[]
+  };
+}
+function dailyGoals(){
+  const calories=Number(prefs.dailyCalories),protein=Number(prefs.dailyProtein);
+  if(!Number.isFinite(calories)||calories<500||!Number.isFinite(protein)||protein<10)return null;
+  return {calories,protein,mode:prefs.goalMode||'maintain'};
+}
+function goalModeLabel(){return ({cut:'CUT',maintain:'MAINTAIN',gain:'GAIN'})[dailyGoals()?.mode]||'YOUR GOAL';}
+function dietLabel(){return ({omnivore:'Everything',vegetarian:'Vegetarian',vegan:'Vegan'})[profile().dietPreference]||'Everything';}
+function savePrefs(){
+  try{
+    prefs={...prefs,hall:selectedHall,sort:$('menuSort')?.value||'station',safeOnly:$('profileSafeOnly')?.checked!==false};
+    localStorage.setItem(PREF,JSON.stringify(prefs));
+  }catch{}
+}
 
 function campusParts(now=new Date()){
   const fmt=new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'long',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
@@ -18,48 +55,18 @@ function campusParts(now=new Date()){
   return {...p,date:`${p.year}-${p.month}-${p.day}`};
 }
 const today=campusParts().date;
-
-function dateLabel(date){
-  return new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(`${date}T12:00:00Z`));
-}
+function dateLabel(date){return new Intl.DateTimeFormat('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'}).format(new Date(`${date}T12:00:00Z`));}
 function timeLabel(time){
   if(!time)return '';
-  let [h,m]=time.split(':').map(Number);
-  const suffix=h>=12?'PM':'AM';
-  h=h%12||12;
+  let [h,m]=time.split(':').map(Number);const suffix=h>=12?'PM':'AM';h=h%12||12;
   return `${h}${m?`:${String(m).padStart(2,'0')}`:''} ${suffix}`;
 }
-function clamp(value,min,max,fallback){
-  const n=Number(value);
-  return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback;
-}
-function dailyGoals(){
-  const calories=Number(prefs.dailyCalories);
-  const protein=Number(prefs.dailyProtein);
-  if(!Number.isFinite(calories)||calories<500||!Number.isFinite(protein)||protein<10)return null;
-  return {calories,protein,mode:prefs.goalMode||'maintain'};
-}
-function goalModeLabel(){
-  return ({cut:'CUT',maintain:'MAINTAIN',gain:'GAIN'})[dailyGoals()?.mode]||'YOUR GOAL';
-}
-function savePrefs(){
-  try{
-    prefs={
-      ...prefs,
-      hall:selectedHall,
-      vegetarian:$('vegetarianOnly')?.checked===true,
-      sort:$('menuSort')?.value||'station'
-    };
-    localStorage.setItem(PREF,JSON.stringify(prefs));
-  }catch{}
-}
 function snapshotAge(){
-  if(!data?.generatedAt)return '';
-  const minutes=Math.max(0,Math.round((Date.now()-new Date(data.generatedAt).getTime())/60000));
+  if(!indexData?.generatedAt)return '';
+  const minutes=Math.max(0,Math.round((Date.now()-new Date(indexData.generatedAt).getTime())/60000));
   if(minutes<2)return 'Menu snapshot refreshed just now.';
   if(minutes<60)return `Menu snapshot refreshed ${minutes} minutes ago.`;
-  const hours=Math.floor(minutes/60);
-  return `Menu snapshot refreshed about ${hours} hour${hours===1?'':'s'} ago.`;
+  const hours=Math.floor(minutes/60);return `Menu snapshot refreshed about ${hours} hour${hours===1?'':'s'} ago.`;
 }
 function updateClock(){
   const p=campusParts();
@@ -67,17 +74,13 @@ function updateClock(){
   $('snapshotAge').textContent=snapshotAge();
   $('dateContext').textContent=activeDate===today?'RIGHT NOW':'BROWSING AHEAD';
 }
-function currentDay(){return data?.dates?.[activeDate]||null;}
-function locationById(id){return currentDay()?.locations.find(x=>x.id===id)||null;}
+
+function locationById(id){return dayData?.locations?.find(x=>x.id===id)||null;}
 function serving(location){return getServingStatus(activeDate,location.id,new Date());}
-const DINING_HALL_IDS=new Set(['40','05','20','25','30']);
-function locationGroup(location){
-  return DINING_HALL_IDS.has(location.id)||/Dining Hall/i.test(location.sourceName||location.name)?0:1;
-}
+function locationGroup(location){return DINING_HALL_IDS.has(location.id)||/Dining Hall/i.test(location.sourceName||location.name)?0:1;}
 function rank(location){
   const state=serving(location).state;
-  const stateRank={open:0,limited:1,unknown:2,scheduled:3,closed:4}[state]??5;
-  return stateRank+(location.status==='live'?0:10);
+  return ({open:0,limited:1,unknown:2,scheduled:3,closed:4}[state]??5)+(location.status==='live'?0:10);
 }
 function servingText(location){
   const s=serving(location);
@@ -92,291 +95,116 @@ function servingText(location){
   return 'Menu posted · serving hours not built in';
 }
 function relevantMeal(location){
-  if(!location.meals?.length)return null;
+  if(!location?.meals?.length)return null;
   const s=serving(location);
   if(s.state==='open'){
     const exact=location.meals.find(m=>m.name.toLowerCase()===s.label.toLowerCase());
     if(exact)return exact;
   }
   if(activeDate===today&&location.bulk?.meal){
-    const bulk=location.meals.find(m=>m.name===location.bulk.meal);
-    if(bulk)return bulk;
+    const bulk=location.meals.find(m=>m.name===location.bulk.meal);if(bulk)return bulk;
   }
   if(s.state==='limited'&&s.next){
-    const next=location.meals.find(m=>m.name.toLowerCase()===s.next.name.toLowerCase());
-    if(next)return next;
+    const next=location.meals.find(m=>m.name.toLowerCase()===s.next.name.toLowerCase());if(next)return next;
   }
   return location.meals[0];
 }
-function nutritionItems(location,mealName){
-  const meal=location?.meals?.find(item=>item.name===mealName);
-  const exact=meal?.items?.some(item=>
-    item.calories!==null&&item.calories!==undefined&&
-    item.protein!==null&&item.protein!==undefined&&
-    typeof item.source==='string'
-  )?meal.items:(mealName===location?.bulk?.meal?(location?.bulk?.items||[]):[]);
-  return exact.filter(item=>
-    item.calories!==null&&item.calories!==undefined&&
-    item.protein!==null&&item.protein!==undefined&&
-    Number.isFinite(Number(item.calories))&&Number(item.calories)>0&&
-    Number.isFinite(Number(item.protein))&&Number(item.protein)>=0
-  );
-}
 function mealTargets(location,mealName){
-  const goals=dailyGoals();
-  if(!goals)return null;
-  const usable=location?.meals?.filter(meal=>nutritionItems(location,meal.name).length)||[];
-  const mealCount=Math.max(1,usable.length||location?.meals?.length||3);
-  return {
-    calories:Math.max(250,Math.round(goals.calories/mealCount)),
-    protein:Math.max(10,Math.round(goals.protein/mealCount)),
-    dailyCalories:goals.calories,
-    dailyProtein:goals.protein,
-    mealCount,
-    mode:goals.mode,
-    mealName
-  };
+  const goals=dailyGoals();if(!goals)return null;
+  const count=Math.max(1,location?.meals?.length||3);
+  return {calories:Math.max(250,Math.round(goals.calories/count)),protein:Math.max(10,Math.round(goals.protein/count)),mealCount:count,mealName};
 }
-function candidatePool(items,vegetarianOnly){
-  let candidates=items.filter(item=>!vegetarianOnly||['vegan','vegetarian'].includes(item.diet));
-  if(candidates.length<=34)return candidates;
-  const unique=new Map();
-  const take=(arr,n)=>arr.slice(0,n).forEach(item=>unique.set(item.name,item));
-  take([...candidates].sort((a,b)=>(Number(b.protein)/Math.max(1,Number(b.calories)))-(Number(a.protein)/Math.max(1,Number(a.calories)))),16);
-  take([...candidates].sort((a,b)=>Number(b.protein)-Number(a.protein)),10);
-  take([...candidates].sort((a,b)=>Number(b.calories)-Number(a.calories)),8);
-  return [...unique.values()];
-}
-function buildBulkPlan(location,mealName=location?.bulk?.meal){
-  const targets=mealTargets(location,mealName);
-  if(!targets)return null;
-  const vegetarianOnly=$('vegetarianOnly')?.checked===true;
-  const candidates=candidatePool(nutritionItems(location,mealName),vegetarianOnly);
-  if(!candidates.length)return null;
-
-  const score=(state,final=false)=>{
-    const calDiff=Math.abs(state.calories-targets.calories)/targets.calories;
-    const proteinGap=Math.max(0,targets.protein-state.protein)/targets.protein;
-    const calorieLow=Math.max(0,targets.calories*.6-state.calories)/targets.calories;
-    const calorieHigh=Math.max(0,state.calories-targets.calories*1.25)/targets.calories;
-    const repetition=[...state.qty.values()].reduce((sum,q)=>sum+Math.max(0,q-1),0);
-    const proteinExcess=Math.max(0,state.protein-targets.protein*2)/targets.protein;
-    return calDiff*1.45+proteinGap*4.2+calorieLow*2.1+calorieHigh*3.2+repetition*.08+proteinExcess*.12+(final?state.servings*.015:0);
-  };
-
-  let states=[{calories:0,protein:0,picks:[],qty:new Map(),servings:0}];
-  for(let step=0;step<5;step++){
-    const next=[...states];
-    for(const state of states){
-      for(const item of candidates){
-        const oldQty=state.qty.get(item.name)||0;
-        if(oldQty>=2)continue;
-        const calories=state.calories+Number(item.calories);
-        if(calories>targets.calories*1.6)continue;
-        const qty=new Map(state.qty);qty.set(item.name,oldQty+1);
-        const picks=oldQty
-          ? state.picks.map(p=>p.item.name===item.name?{...p,quantity:p.quantity+1}:p)
-          : [...state.picks,{item,quantity:1}];
-        next.push({
-          calories,
-          protein:state.protein+Number(item.protein),
-          picks,
-          qty,
-          servings:state.servings+1
-        });
-      }
+function nutritionLink(item){return typeof item?.source==='string'&&/nutrition\.sa\.ucsc\.edu\/label\.aspx/i.test(item.source)?item.source:null;}
+function profileMatches(item,{requireAllergenData=false}={}){
+  const p=profile();
+  if(p.dietPreference==='vegan'&&item.diet!=='vegan')return false;
+  if(p.dietPreference==='vegetarian'&&!['vegetarian','vegan'].includes(item.diet))return false;
+  if(p.allergens.length){
+    if(requireAllergenData&&(!Array.isArray(item.allergens)||item.nutritionStatus==='unavailable'))return false;
+    const published=(item.allergens||[]).map(norm);
+    for(const key of p.allergens){
+      const terms=ALLERGEN_GROUPS[key]||[norm(key)];
+      if(published.some(allergen=>terms.some(term=>allergen.includes(term))))return false;
     }
-    states=next.sort((a,b)=>score(a)-score(b)).slice(0,180);
   }
-
-  const viable=states.filter(state=>state.servings>0&&state.calories>=targets.calories*.42);
-  if(!viable.length)return null;
-  const best=viable.sort((a,b)=>score(a,true)-score(b,true))[0];
-  return {...best,targets};
+  const itemText=norm(`${item.name} ${item.section||''}`);
+  for(const raw of p.avoidFoods){const term=norm(raw);if(term&&itemText.includes(term))return false;}
+  return true;
 }
-function bulkModeText(location,mealName){
-  if(!location.bulk)return `Built from the posted ${mealName} menu.`;
-  if(mealName!==location.bulk.meal)return `Built from the posted ${mealName} menu.`;
-  const state=serving(location).state;
-  if(location.bulk.mode==='now'&&state==='open')return `Built for ${mealName}, the meal being served now.`;
-  if(state==='limited')return `Continuous Dining is limited right now. This plan is for ${mealName}, not the limited selection.`;
-  if(location.bulk.mode==='next')return `Built for ${mealName}, the next useful posted meal for this location.`;
-  return `Built from the posted ${mealName} menu.`;
+function profileChips(){
+  const p=profile(),chips=[dietLabel(),`${dailyGoals()?.calories||'?'} kcal/day`,`${dailyGoals()?.protein||'?'} g protein/day`];
+  if(p.allergens.length)chips.push(`${p.allergens.length} allergen filter${p.allergens.length===1?'':'s'}`);
+  if(p.avoidFoods.length)chips.push(`${p.avoidFoods.length} avoid-food filter${p.avoidFoods.length===1?'':'s'}`);
+  return chips;
 }
-function nutritionLink(item){
-  return typeof item?.source==='string'&&/nutrition\.sa\.ucsc\.edu\/label\.aspx/i.test(item.source)?item.source:null;
+
+async function fetchJSON(path,bust=false){
+  const response=await fetch(`${path}${bust?`${path.includes('?')?'&':'?'}t=${Date.now()}`:''}`,{cache:bust?'no-store':'default'});
+  if(!response.ok)throw new Error(`Could not load ${path}.`);
+  return response.json();
 }
-function renderBulkPlan(location){
-  const root=$('bulkPlan');root.replaceChildren();
-  const mealForPlan=selectedMeal||location?.bulk?.meal||location?.meals?.[0]?.name;
-  const goals=dailyGoals();
-  const targets=location&&mealForPlan?mealTargets(location,mealForPlan):null;
-
-  $('goalModeBadge').textContent=goalModeLabel();
-  $('bulkTitle').textContent=location?`Meal plan at ${location.name}`:'Your meal plan';
-  $('bulkTargetBadge').textContent=targets?`${targets.calories} kcal · ${targets.protein} g protein this meal`:'Set your goals';
-  $('dailyGoalSummary').textContent=goals
-    ? `${goals.calories} kcal/day · ${goals.protein} g protein/day · automatically split across ${targets?.mealCount||'the posted'} meals`
-    : 'Set your daily calorie and protein goals once. The planner will handle each meal automatically.';
-
-  if(!location){
-    root.append(el('p','Choose a dining location to build a meal.','menu-empty'));
-    return;
-  }
-  if(!goals){
-    $('bulkSubtitle').textContent='Set two daily targets once, then the site can build meals automatically.';
-    const box=el('div','','bulk-empty');
-    box.append(
-      el('strong','Set up your meal goals'),
-      el('p','Enter your daily calories and protein on the Goals page. You can label the plan as cut, maintain, or gain. The label does not calculate your targets for you.')
-    );
-    const link=el('a','Set goals →','button-link');link.href='./goals.html';box.append(link);root.append(box);
-    return;
-  }
-  if(activeDate!==today){
-    $('bulkSubtitle').textContent='Automatic macro plans are generated for today so nutrition stays tied to the current UCSC menu.';
-    const box=el('div','','bulk-empty');
-    box.append(el('strong','Meal planning is focused on today.'),el('p','Future menus are still available for browsing.'));
-    root.append(box);
-    return;
-  }
-  if(!nutritionItems(location,mealForPlan).length){
-    $('bulkSubtitle').textContent='This meal does not have enough readable UCSC nutrition data for an automatic plan yet.';
-    root.append(el('p','The menu is still available below. The planner will not invent calories or protein when UCSC does not publish a readable label.','menu-empty'));
-    return;
-  }
-
-  const plan=buildBulkPlan(location,mealForPlan);
-  $('bulkSubtitle').textContent=`${bulkModeText(location,mealForPlan)} Click any planned food to open its exact UCSC nutrition label.`;
-  if(!plan){
-    root.append(el('p',$('vegetarianOnly').checked?'No vegetarian items with readable calories and protein can make a reliable plan for this meal.':'Not enough readable calories and protein are available to build a reliable plan.','menu-empty'));
-    return;
-  }
-
-  const summary=el('div','','bulk-summary');
-  const closeEnough=plan.protein>=plan.targets.protein&&plan.calories>=plan.targets.calories*.72&&plan.calories<=plan.targets.calories*1.28;
-  const quality=closeEnough?'Meal target hit':'Closest posted-menu match';
-  const metrics=el('div','','bulk-metrics');
-  const kcal=el('div','','bulk-metric');kcal.append(el('strong',String(Math.round(plan.calories))),el('span','kcal'));
-  const protein=el('div','','bulk-metric');protein.append(el('strong',String(Math.round(plan.protein))),el('span','g protein'));
-  metrics.append(kcal,protein);
-  const copy=el('div','','bulk-summary-copy');
-  copy.append(el('span',quality,'bulk-quality'),el('p',`${plan.picks.length} food${plan.picks.length===1?'':'s'} · ${plan.servings} total serving${plan.servings===1?'':'s'}`));
-  summary.append(copy,metrics);
-  root.append(summary);
-
-  const list=el('div','','bulk-items');
-  for(const pick of plan.picks){
-    const item=pick.item;
-    const card=el('article','','bulk-item');
-    const top=el('div','','bulk-item-top');
-    const link=nutritionLink(item);
-    const name=link?el('a',item.name,'bulk-food-link'):el('strong',item.name,'bulk-food-link');
-    if(link){name.href=link;name.target='_blank';name.rel='noreferrer';}
-    top.append(name,el('span',`${pick.quantity}×`,'quantity'));
-    card.append(top);
-    const meta=el('div','','bulk-item-meta');
-    meta.append(el('span',item.serving||'UCSC serving'));
-    meta.append(el('span',`${Math.round(Number(item.calories)*pick.quantity)} kcal`));
-    meta.append(el('span',`${Math.round(Number(item.protein)*pick.quantity)} g protein`));
-    card.append(meta);
-    if(link)card.append(el('span','Open UCSC nutrition ↗','nutrition-cta'));
-    list.append(card);
-  }
-  root.append(list);
-
-  const note=el('p','','bulk-note');
-  const calDelta=Math.round(plan.calories-plan.targets.calories);
-  const proteinDelta=Math.round(plan.protein-plan.targets.protein);
-  note.textContent=`Meal target: ${plan.targets.calories} kcal and ${plan.targets.protein} g protein. This suggestion is ${calDelta===0?'on the calorie target':`${Math.abs(calDelta)} kcal ${calDelta>0?'over':'under'}`} and ${proteinDelta>=0?`${proteinDelta} g protein over`:`${Math.abs(proteinDelta)} g protein under`}. Use the UCSC serving size shown for each item.`;
-  root.append(note);
+async function loadDay(date,bust=false){
+  if(!bust&&dayCache.has(date))return dayCache.get(date);
+  const day=await fetchJSON(`./data/dates/${date}.json`,bust);dayCache.set(date,day);return day;
 }
+async function ensureDetail(location,bust=false){
+  if(!location?.detailPath)return null;
+  const key=`${activeDate}:${location.id}`;
+  if(!bust&&detailCache.has(key))return detailCache.get(key);
+  if(!bust&&detailPromises.has(key))return detailPromises.get(key);
+  const promise=fetchJSON(location.detailPath,bust).then(detail=>{detailCache.set(key,detail);detailPromises.delete(key);return detail;}).catch(error=>{detailPromises.delete(key);throw error;});
+  detailPromises.set(key,promise);return promise;
+}
+function applyDetail(location,detail){
+  if(!location||!detail)return;
+  location.meals=detail.meals||location.meals;location.bulk=detail.bulk||null;location.detailLoaded=true;
+}
+
 function renderDates(){
-  const dates=Object.keys(data.dates).sort();
+  const dates=indexData?.dates||[];
   if(!dates.includes(activeDate))activeDate=dates.includes(today)?today:dates[0];
-  $('menuDate').replaceChildren(...dates.map(date=>{
-    const option=el('option',date===today?`Today · ${dateLabel(date)}`:dateLabel(date));
-    option.value=date;
-    return option;
-  }));
+  $('menuDate').replaceChildren(...dates.map(date=>{const option=el('option',date===today?`Today · ${dateLabel(date)}`:dateLabel(date));option.value=date;return option;}));
   $('menuDate').value=activeDate;
   const i=dates.indexOf(activeDate);
-  $('datePrev').disabled=i<=0;
-  $('dateNext').disabled=i<0||i>=dates.length-1;
-  $('dateToday').disabled=activeDate===today||!dates.includes(today);
-  $('datePrev').onclick=()=>{if(i>0){activeDate=dates[i-1];selectedMeal=null;render();}};
-  $('dateNext').onclick=()=>{if(i>=0&&i<dates.length-1){activeDate=dates[i+1];selectedMeal=null;render();}};
-  $('dateToday').onclick=()=>{if(dates.includes(today)){activeDate=today;selectedMeal=null;render();}};
-  $('menuDate').onchange=()=>{activeDate=$('menuDate').value;selectedMeal=null;render();};
+  $('datePrev').disabled=i<=0;$('dateNext').disabled=i<0||i>=dates.length-1;$('dateToday').disabled=activeDate===today||!dates.includes(today);
+  $('datePrev').onclick=()=>{if(i>0)changeDate(dates[i-1]);};
+  $('dateNext').onclick=()=>{if(i>=0&&i<dates.length-1)changeDate(dates[i+1]);};
+  $('dateToday').onclick=()=>{if(dates.includes(today))changeDate(today);};
+  $('menuDate').onchange=()=>changeDate($('menuDate').value);
 }
 function renderOverview(){
-  const root=$('diningOverview');root.replaceChildren();
-  const day=currentDay();if(!day)return;
-  const locations=[...day.locations].sort((a,b)=>locationGroup(a)-locationGroup(b)||rank(a)-rank(b)||a.name.localeCompare(b.name));
+  const root=$('diningOverview');root.replaceChildren();if(!dayData)return;
+  const locations=[...dayData.locations].sort((a,b)=>locationGroup(a)-locationGroup(b)||rank(a)-rank(b)||a.name.localeCompare(b.name));
   for(const location of locations){
-    const s=serving(location);
-    const card=document.createElement('button');
-    card.type='button';
-    card.className=`dining-card status-${s.state} ${location.id===selectedHall?'selected':''}`;
-    const top=el('div','','card-top');
-    top.append(el('strong',location.name),el('span',s.state==='scheduled'?'future':s.state,'status-badge'));
-    card.append(top,el('p',servingText(location),'serving-line'));
-
-    const autoPlan=activeDate===today?buildBulkPlan(location,location.bulk?.meal):null;
-    if(autoPlan){
-      const mini=el('div','','bulk-mini');
-      mini.append(el('span',location.bulk?.mode==='now'?'MEAL PLAN':'NEXT MEAL','bulk-mini-label'));
-      mini.append(el('strong',`${Math.round(autoPlan.calories)} kcal · ${Math.round(autoPlan.protein)} g protein`));
-      mini.append(el('small',autoPlan.picks.slice(0,2).map(p=>`${p.quantity>1?`${p.quantity}× `:''}${p.item.name}`).join(' + ')));
-      card.append(mini);
-    }else if(location.status!=='live'){
-      card.append(el('p',location.message||'No menu posted for this date.','card-message'));
-    }else if(s.state==='limited'){
-      card.append(el('p','Limited service now. Open the card for the next full meal plan.','card-message'));
-    }else{
+    const s=serving(location),card=document.createElement('button');
+    card.type='button';card.className=`dining-card status-${s.state} ${location.id===selectedHall?'selected':''}`;
+    const top=el('div','','card-top');top.append(el('strong',location.name),el('span',s.state==='scheduled'?'future':s.state,'status-badge'));card.append(top,el('p',servingText(location),'serving-line'));
+    if(location.status!=='live')card.append(el('p',location.message||'No menu posted for this date.','card-message'));
+    else if(s.state==='limited')card.append(el('p','Limited service now. Open this place to plan the next full meal.','card-message'));
+    else{
       const meal=relevantMeal(location);
       if(meal){
         card.append(el('span',meal.name,'preview-label'));
-        const preview=el('div','','food-preview');
-        meal.items.slice(0,3).forEach(item=>preview.append(el('span',item.name)));
-        card.append(preview);
+        const preview=el('div','','food-preview');meal.items.slice(0,3).forEach(item=>preview.append(el('span',item.name)));card.append(preview);
       }
+      if(location.detailPath)card.append(el('small','Personalized plates available'));
     }
-
-    card.onclick=()=>{
-      selectedHall=location.id;
-      selectedMeal=null;
-      savePrefs();
-      render();
-      $('bulkPlanner').scrollIntoView({behavior:'smooth',block:'start'});
-    };
-    root.append(card);
+    card.onclick=()=>selectLocation(location.id,true);root.append(card);
   }
-  $('locationCount').textContent=`${day.locations.filter(x=>x.status==='live').length} places with a posted menu for this date`;
+  $('locationCount').textContent=`${dayData.locations.filter(x=>x.status==='live').length} places with a posted menu for this date`;
 }
 function renderHallSelect(){
-  const day=currentDay();if(!day)return;
-  $('hall').replaceChildren(...day.locations.map(location=>{const o=el('option',location.name);o.value=location.id;return o;}));
-  $('hall').value=selectedHall;
-  $('hall').onchange=()=>{selectedHall=$('hall').value;selectedMeal=null;savePrefs();render();};
+  if(!dayData)return;
+  const sorted=[...dayData.locations].sort((a,b)=>locationGroup(a)-locationGroup(b)||a.name.localeCompare(b.name));
+  $('hall').replaceChildren(...sorted.map(location=>{const o=el('option',location.name);o.value=location.id;return o;}));
+  $('hall').value=selectedHall;$('hall').onchange=()=>selectLocation($('hall').value,false);
 }
 function renderSchedule(location){
-  const root=$('selectedSchedule');root.replaceChildren();
-  const schedule=location.schedule;
-  if(schedule===null){
-    root.append(el('p','Serving hours are not built in for this café or market yet. The posted menu is still shown below.','muted'));
-    return;
-  }
-  if(!schedule?.length){
-    root.append(el('p','Closed on the regular serving schedule for this day.','muted'));
-    return;
-  }
+  const root=$('selectedSchedule');root.replaceChildren();const schedule=location?.schedule;
+  if(schedule===null){root.append(el('p','Serving hours are not built in for this café or market yet. The posted menu is still shown below.','muted'));return;}
+  if(!schedule?.length){root.append(el('p','Closed on the regular serving schedule for this day.','muted'));return;}
   const strip=el('div','','schedule-strip');
-  schedule.forEach(item=>{
-    const block=el('div','',item.limited?'schedule-slot limited':'schedule-slot');
-    block.append(el('strong',item.name),el('span',`${timeLabel(item.start)} to ${timeLabel(item.end)}`));
-    strip.append(block);
-  });
+  schedule.forEach(item=>{const block=el('div','',item.limited?'schedule-slot limited':'schedule-slot');block.append(el('strong',item.name),el('span',`${timeLabel(item.start)} to ${timeLabel(item.end)}`));strip.append(block);});
   root.append(strip);
 }
 function chooseMeal(location){
@@ -385,62 +213,94 @@ function chooseMeal(location){
   return relevantMeal(location)?.name||location.meals?.[0]?.name||'';
 }
 function renderMealTabs(location){
-  const names=location.meals.map(m=>m.name);
-  selectedMeal=chooseMeal(location);
-  $('mealTabs').replaceChildren(...names.map(name=>{
-    const b=el('button',name,`meal-tab ${name===selectedMeal?'active':''}`);
-    b.type='button';
-    b.onclick=()=>{selectedMeal=name;renderDetail();};
-    return b;
-  }));
+  const names=location?.meals?.map(m=>m.name)||[];selectedMeal=chooseMeal(location);
+  $('mealTabs').replaceChildren(...names.map(name=>{const b=el('button',name,`meal-tab ${name===selectedMeal?'active':''}`);b.type='button';b.onclick=()=>{selectedMeal=name;renderSelectedDetail();};return b;}));
   $('menuMeal').replaceChildren(...names.map(name=>{const o=el('option',name);o.value=name;return o;}));
-  $('menuMeal').value=selectedMeal;
-  $('menuMeal').onchange=()=>{selectedMeal=$('menuMeal').value;renderDetail();};
+  $('menuMeal').value=selectedMeal;$('menuMeal').onchange=()=>{selectedMeal=$('menuMeal').value;renderSelectedDetail();};
+}
+function renderProfileSummary(){
+  const root=$('profileSummary');root.replaceChildren();
+  for(const text of profileChips())root.append(el('span',text,'profile-chip'));
+}
+function quantityLabel(quantity){
+  if(quantity===0.25)return '¼ serving';if(quantity===0.5)return '½ serving';if(quantity===0.75)return '¾ serving';if(quantity===1)return '1 serving';if(quantity===1.5)return '1½ servings';if(quantity===2)return '2 servings';return `${quantity} servings`;
+}
+function renderPlateOption(option,index){
+  const card=el('article','','plate-option');
+  const head=el('div','','plate-option-head');
+  const title=el('div','','plate-option-title');title.append(el('span',index===0?'BEST MATCH':`OPTION ${index+1}`,'plate-rank'),el('strong',`${Math.round(option.calories)} kcal · ${Math.round(option.protein)} g protein`));
+  head.append(title);card.append(head,el('p',option.reason,'plate-reason'));
+  const parts=el('div','','plate-parts');
+  for(const part of option.parts){
+    const row=el('div','','plate-part');
+    const qty=el('span',quantityLabel(part.quantity),'plate-qty');
+    const copy=el('div','','plate-part-copy');
+    const link=nutritionLink(part.item);
+    const name=link?el('a',part.item.name,'plate-food-name'):el('strong',part.item.name,'plate-food-name');
+    if(link){name.href=link;name.target='_blank';name.rel='noreferrer';}
+    copy.append(name);
+    const meta=[];
+    if(part.item.serving)meta.push(`base serving: ${part.item.serving}`);
+    meta.push(`${Math.round(Number(part.item.calories)*part.quantity)} kcal`);
+    meta.push(`${Math.round(Number(part.item.protein)*part.quantity)} g protein`);
+    copy.append(el('small',meta.join(' · ')));
+    row.append(qty,copy);parts.append(row);
+  }
+  card.append(parts);return card;
+}
+function renderMealPlan(location){
+  const root=$('bulkPlan');root.replaceChildren();renderProfileSummary();
+  const goals=dailyGoals(),mealForPlan=selectedMeal||location?.bulk?.meal||location?.meals?.[0]?.name;
+  const target=location&&mealForPlan?mealTargets(location,mealForPlan):null;
+  $('goalModeBadge').textContent=goalModeLabel();
+  $('bulkTitle').textContent=location?`What to get at ${location.name}`:'What to get';
+  $('bulkTargetBadge').textContent=target?`${target.calories} kcal · ${target.protein} g protein`:'Set your plan';
+  $('dailyGoalSummary').textContent=goals?`${goals.calories} kcal/day · ${goals.protein} g protein/day · ${dietLabel()}`:'Complete My Plan to personalize meals.';
+
+  if(activeDate!==today){$('bulkSubtitle').textContent='Future menus are for browsing. Personalized plate building is focused on today so nutrition stays tied to the current labels.';root.append(el('p','Return to Today for station plate recommendations.','menu-empty'));return;}
+  if(location?.detailPath&&!location.detailLoaded){
+    $('bulkSubtitle').textContent='Menu names are already loaded. Pulling nutrition only for this place now.';
+    const box=el('div','','bulk-loading');box.append(el('span','','loading-dot'),el('strong','Loading nutrition for personalized plates'));root.append(box);return;
+  }
+  const meal=location?.meals?.find(m=>m.name===mealForPlan);
+  if(!meal||!target){root.append(el('p','No detailed meal data is available for a recommendation here yet.','menu-empty'));return;}
+
+  const stations=generateStationPlates({items:meal.items,profile:profile(),target,mealName:meal.name,maxPerStation:2});
+  $('bulkSubtitle').textContent=`Showing cohesive plate options from ${meal.name}. Foods stay grouped by station whenever the menu supports it.`;
+  if(!stations.length){
+    root.append(el('p','No plate could be recommended from the published labels after applying your eating style, allergies, and avoid-food list. The full menu is below, but nothing filtered out will be suggested as safe.','menu-empty'));return;
+  }
+
+  const list=el('div','','station-plan-list');
+  for(const station of stations){
+    const section=el('section','','station-plan');
+    const header=el('div','','station-plan-head');header.append(el('div','', 'station-plan-title'));
+    header.firstChild.append(el('span','STATION','station-kicker'),el('h3',station.section));
+    header.append(el('span',station.theme.replace(/\b\w/g,c=>c.toUpperCase()),'station-theme'));
+    section.append(header);
+    const options=el('div','','plate-options');station.options.forEach((option,index)=>options.append(renderPlateOption(option,index)));section.append(options);list.append(section);
+  }
+  root.append(list);
 }
 function renderMenuItems(location){
-  const root=$('menuItems');root.replaceChildren();
-  const meal=location.meals.find(m=>m.name===selectedMeal);
-  if(!meal){
-    root.append(el('p','No menu is posted for this meal.','menu-empty'));
-    return;
-  }
-  const query=$('menuSearch').value.trim().toLowerCase();
-  let items=meal.items.filter(item=>(!$('vegetarianOnly').checked||['vegan','vegetarian'].includes(item.diet))&&item.name.toLowerCase().includes(query));
+  const root=$('menuItems');root.replaceChildren();const meal=location?.meals?.find(m=>m.name===selectedMeal);
+  if(!meal){root.append(el('p','No menu is posted for this meal.','menu-empty'));return;}
+  const query=$('menuSearch').value.trim().toLowerCase(),safeOnly=$('profileSafeOnly').checked;
+  if(safeOnly&&profile().allergens.length&&location.detailPath&&!location.detailLoaded){root.append(el('p','Loading UCSC nutrition labels before applying your allergy filters.','menu-empty'));return;}
+  let items=meal.items.filter(item=>item.name.toLowerCase().includes(query));
+  if(safeOnly)items=items.filter(item=>profileMatches(item,{requireAllergenData:profile().allergens.length>0}));
   if($('menuSort').value==='alpha')items=[...items].sort((a,b)=>a.name.localeCompare(b.name));
-  if(!items.length){
-    root.append(el('p',meal.items.length?'No foods match these filters.':'No items are posted for this meal.','menu-empty'));
-    return;
-  }
+  if(!items.length){root.append(el('p',meal.items.length?'No foods match these filters.':'No items are posted for this meal.','menu-empty'));return;}
   root.append(el('p',`${items.length} foods · ${meal.name} · ${dateLabel(activeDate)}`,'menu-count'));
   const groups=new Map();
-  for(const item of items){
-    const key=$('menuSort').value==='alpha'?'All foods':(item.section||'Menu');
-    if(!groups.has(key))groups.set(key,[]);
-    groups.get(key).push(item);
-  }
+  for(const item of items){const key=$('menuSort').value==='alpha'?'All foods':(item.section||'Menu');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);}
   for(const [section,foods] of groups){
-    const wrap=el('section','','station-section');
-    wrap.append(el('h3',section));
-    const grid=el('div','','station-items');
+    const wrap=el('section','','station-section');wrap.append(el('h3',section));const grid=el('div','','station-items');
     foods.forEach(item=>{
-      const row=el('div','','static-food-row');
-      const left=el('div','','food-copy');
-      const link=nutritionLink(item);
-      const name=link?el('a',item.name,'static-food-name'):el('span',item.name,'static-food-name');
-      if(link){name.href=link;name.target='_blank';name.rel='noreferrer';name.title='Open exact UCSC nutrition label';}
-      left.append(name);
-      const meta=el('div','','food-meta');
-      if(item.serving)meta.append(el('span',item.serving));
-      if(Number.isFinite(Number(item.calories)))meta.append(el('span',`${Math.round(Number(item.calories))} kcal`));
-      if(Number.isFinite(Number(item.protein)))meta.append(el('span',`${Math.round(Number(item.protein))} g protein`));
-      if(item.diet==='vegan'||item.diet==='vegetarian')meta.append(el('span',item.diet==='vegan'?'Vegan':'Vegetarian',`diet-tag ${item.diet}`));
-      if(link)meta.append(el('span','Nutrition ↗','nutrition-inline'));
-      left.append(meta);
-      row.append(left);
-      grid.append(row);
-    });
-    wrap.append(grid);
-    root.append(wrap);
+      const row=el('div','','static-food-row'),left=el('div','','food-copy'),link=nutritionLink(item);
+      const name=link?el('a',item.name,'static-food-name'):el('span',item.name,'static-food-name');if(link){name.href=link;name.target='_blank';name.rel='noreferrer';name.title='Open exact UCSC nutrition label';}left.append(name);
+      const meta=el('div','','food-meta');if(item.serving)meta.append(el('span',item.serving));if(item.calories!==undefined&&item.calories!==null)meta.append(el('span',`${Math.round(Number(item.calories))} kcal`));if(item.protein!==undefined&&item.protein!==null)meta.append(el('span',`${Math.round(Number(item.protein))} g protein`));if(item.diet==='vegan'||item.diet==='vegetarian')meta.append(el('span',item.diet==='vegan'?'Vegan':'Vegetarian',`diet-tag ${item.diet}`));if(link)meta.append(el('span','Nutrition ↗','nutrition-inline'));left.append(meta);row.append(left);grid.append(row);
+    });wrap.append(grid);root.append(wrap);
   }
 }
 function detailMessage(location){
@@ -451,73 +311,58 @@ function detailMessage(location){
   if(s.state==='unknown')return 'The menu is posted, but verified serving hours are not built in for this location yet.';
   return `${s.label} is happening now on the regular schedule.`;
 }
-function renderDetail(){
-  const location=locationById(selectedHall);
-  if(!location)return;
-  $('selectedLocationName').textContent=location.name;
-  $('selectedLocationStatus').textContent=servingText(location);
-  renderSchedule(location);
-  renderMealTabs(location);
-  renderBulkPlan(location);
-  $('menuStatus').textContent=location.status==='live'?detailMessage(location):(location.message||'No menu posted for this date.');
-  $('menuLink').href=location.source||'#';
-  $('menuUpdated').textContent=snapshotAge();
-  renderMenuItems(location);
+function renderSelectedDetail(){
+  const location=locationById(selectedHall);if(!location)return;
+  $('selectedLocationName').textContent=location.name;$('selectedLocationStatus').textContent=servingText(location);renderSchedule(location);renderMealTabs(location);
+  $('menuStatus').textContent=location.status==='live'?detailMessage(location):(location.message||'No menu posted for this date.');$('menuLink').href=location.source||'#';$('menuUpdated').textContent=snapshotAge();renderMealPlan(location);renderMenuItems(location);
 }
 function ensureSelection(){
-  const day=currentDay();if(!day?.locations?.length)return;
-  if(!selectedHall||!day.locations.some(x=>x.id===selectedHall)){
-    selectedHall=[...day.locations].sort((a,b)=>locationGroup(a)-locationGroup(b)||rank(a)-rank(b)||a.name.localeCompare(b.name))[0].id;
-  }
+  if(!dayData?.locations?.length)return;
+  if(!selectedHall||!dayData.locations.some(x=>x.id===selectedHall))selectedHall=[...dayData.locations].sort((a,b)=>locationGroup(a)-locationGroup(b)||rank(a)-rank(b)||a.name.localeCompare(b.name))[0].id;
 }
-function render(){
-  ensureSelection();
-  renderDates();
-  updateClock();
-  renderOverview();
-  renderHallSelect();
-  renderDetail();
-  $('dashboardStatus').textContent=`Menu snapshot generated ${new Date(data.generatedAt).toLocaleString()}. GitHub refreshes it automatically throughout the day.`;
+function renderPage(){ensureSelection();renderDates();updateClock();renderOverview();renderHallSelect();renderSelectedDetail();$('dashboardStatus').textContent=`Menus loaded. Snapshot updated ${new Date(indexData.generatedAt).toLocaleString()}.`;}
+async function hydrateSelectedLocation(bust=false){
+  const location=locationById(selectedHall);if(!location?.detailPath||location.detailLoaded)return;
+  const token=++detailToken;renderMealPlan(location);
+  try{const detail=await ensureDetail(location,bust);if(token!==detailToken||selectedHall!==location.id)return;applyDetail(location,detail);renderSelectedDetail();}
+  catch(error){if(token!==detailToken)return;$('bulkSubtitle').textContent='Nutrition details could not load for this location.';$('bulkPlan').replaceChildren(el('p','The menu is still usable below. Try refreshing later for personalized plate recommendations.','menu-empty'));}
+}
+async function selectLocation(id,scroll){selectedHall=id;selectedMeal=null;savePrefs();renderOverview();renderHallSelect();renderSelectedDetail();hydrateSelectedLocation();if(scroll)$('bulkPlanner').scrollIntoView({behavior:'smooth',block:'start'});}
+async function changeDate(date){
+  if(date===activeDate&&dayData)return;activeDate=date;selectedMeal=null;$('dashboardStatus').textContent='Loading this date…';
+  try{dayData=await loadDay(date);renderPage();hydrateSelectedLocation();}catch(error){$('dashboardStatus').textContent=`Menus unavailable: ${error.message}`;}
+}
+function prefetchDiningHalls(){
+  const work=async()=>{const halls=(dayData?.locations||[]).filter(location=>DINING_HALL_IDS.has(location.id)&&location.detailPath&&location.id!==selectedHall);for(const hall of halls){try{await ensureDetail(hall);}catch{}}};
+  if('requestIdleCallback'in window)requestIdleCallback(()=>work(),{timeout:3000});else setTimeout(work,1200);
 }
 async function loadData(bust=false){
-  $('refresh').disabled=true;
-  $('dashboardStatus').textContent='Loading UCSC menu snapshot…';
+  $('refresh').disabled=true;$('dashboardStatus').textContent='Loading menu list…';
   try{
-    const response=await fetch(`./data/menus.json${bust?`?t=${Date.now()}`:''}`,{cache:bust?'no-store':'default'});
-    if(!response.ok)throw new Error('Could not load the published menu snapshot.');
-    data=await response.json();
-    const dates=Object.keys(data.dates||{}).sort();
-    if(!dates.length)throw new Error('No published menu dates are available.');
-    activeDate=activeDate&&dates.includes(activeDate)?activeDate:(dates.includes(today)?today:dates[0]);
-    render();
-  }catch(error){
-    $('dashboardStatus').textContent=`Dining menus unavailable: ${error.message}`;
-    $('diningOverview').replaceChildren(el('p','The published menu snapshot could not be loaded. Try again in a moment.','menu-empty'));
-    $('bulkPlan').replaceChildren(el('p','The meal planner needs the UCSC menu snapshot before it can build a meal.','menu-empty'));
-  }finally{
-    $('refresh').disabled=false;
-  }
+    indexData=await fetchJSON('./data/index.json',bust);const dates=indexData.dates||[];if(!dates.length)throw new Error('No posted menu dates are available.');
+    activeDate=activeDate&&dates.includes(activeDate)?activeDate:(dates.includes(today)?today:dates[0]);if(bust){dayCache.clear();detailCache.clear();detailPromises.clear();}
+    dayData=await loadDay(activeDate,bust);renderPage();await hydrateSelectedLocation(bust);prefetchDiningHalls();
+  }catch(error){$('dashboardStatus').textContent=`Dining menus unavailable: ${error.message}`;$('diningOverview').replaceChildren(el('p','The published menu snapshot could not be loaded. Try again in a moment.','menu-empty'));$('bulkPlan').replaceChildren(el('p','The meal helper needs the menu snapshot before it can build plates.','menu-empty'));}
+  finally{$('refresh').disabled=false;}
 }
 
-$('vegetarianOnly').checked=prefs.vegetarian===true;
-$('menuSort').value=prefs.sort||'station';
-selectedHall=prefs.hall||null;
+function init(){
+  $('profileSafeOnly').checked=prefs.safeOnly!==false;$('menuSort').value=prefs.sort||'station';
+  $('profileSafeOnly').onchange=()=>{savePrefs();if(dayData)renderMenuItems(locationById(selectedHall));};
+  $('menuSort').onchange=()=>{savePrefs();if(dayData)renderMenuItems(locationById(selectedHall));};
+  $('menuSearch').oninput=()=>{if(dayData)renderMenuItems(locationById(selectedHall));};
+  $('refresh').onclick=()=>loadData(true);
+  const strip=$('diningOverview');
+  strip.addEventListener('wheel',event=>{
+    if(strip.scrollWidth<=strip.clientWidth)return;
+    const movement=Math.abs(event.deltaY)>=Math.abs(event.deltaX)?event.deltaY:event.deltaX;
+    if(!movement)return;
+    const atStart=strip.scrollLeft<=1&&movement<0,atEnd=strip.scrollLeft+strip.clientWidth>=strip.scrollWidth-2&&movement>0;
+    if(atStart||atEnd)return;
+    event.preventDefault();strip.scrollLeft+=movement;
+  },{passive:false});
+  updateClock();setInterval(()=>{updateClock();if(dayData&&activeDate===today){renderOverview();renderSelectedDetail();}},60*1000);loadData();
+}
 
-$('vegetarianOnly').onchange=()=>{savePrefs();if(data){renderOverview();renderDetail();}};
-$('menuSort').onchange=()=>{savePrefs();if(data)renderMenuItems(locationById(selectedHall));};
-$('menuSearch').oninput=()=>{if(data)renderMenuItems(locationById(selectedHall));};
-$('refresh').onclick=()=>loadData(true);
-
-const strip=$('diningOverview');
-strip.addEventListener('wheel',event=>{
-  if(Math.abs(event.deltaY)<=Math.abs(event.deltaX)||strip.scrollWidth<=strip.clientWidth)return;
-  const atStart=strip.scrollLeft<=1&&event.deltaY<0;
-  const atEnd=strip.scrollLeft+strip.clientWidth>=strip.scrollWidth-2&&event.deltaY>0;
-  if(atStart||atEnd)return;
-  event.preventDefault();
-  strip.scrollLeft+=event.deltaY;
-},{passive:false});
-
-updateClock();
-setInterval(()=>{updateClock();if(activeDate===today&&data)render();},60*1000);
-loadData();
+if(needsSetup)location.replace('./goals.html?setup=1');
+else init();

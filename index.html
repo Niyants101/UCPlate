@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#080b09">
   <title>College Fuel · UCSC Meal Helper</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./ux.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
@@ -14,16 +15,16 @@
   <a class="brand" href="./">COLLEGE FUEL</a>
   <nav class="site-nav" aria-label="Main navigation">
     <a class="active" href="./">Dining</a>
-    <a href="./goals.html">Goals</a>
+    <a href="./goals.html">My Plan</a>
   </nav>
 </header>
 
 <main>
   <section class="hero">
     <div>
-      <p class="eyebrow">AUTOMATIC UCSC MEAL HELPER</p>
-      <h1>What should I eat<br><em>today?</em></h1>
-      <p class="intro">Set your calorie and protein goals once. After that, the site checks Santa Cruz time, reads UCSC menus, and builds a meal that helps you cut, maintain, or gain with almost no input.</p>
+      <p class="eyebrow">YOUR UCSC MEAL HELPER</p>
+      <h1>Your next meal,<br><em>already figured out.</em></h1>
+      <p class="intro">Choose where you want to eat. College Fuel uses your saved goals, eating style, allergies, UCSC menu data, and the current meal period to recommend actual plates from each station.</p>
     </div>
     <aside class="now-card">
       <span class="tag" id="dateContext">RIGHT NOW</span>
@@ -32,7 +33,7 @@
     </aside>
   </section>
 
-  <div id="notice" role="status">Menus and nutrition come from UCSC Dining. Serving schedules are regular hours and can differ during special closures or substitutions.</div>
+  <div id="notice" role="status">Recommendations only use UCSC-published menu and nutrition data. Allergy filtering uses published labels and does not replace checking cross-contact or special preparation with dining staff.</div>
 
   <section class="live-menu">
     <div class="section-head">
@@ -41,7 +42,7 @@
         <h2>Pick a place, or just scroll</h2>
         <p id="locationCount" class="muted"></p>
       </div>
-      <button id="refresh" type="button">Reload snapshot ↻</button>
+      <button id="refresh" type="button">Reload menus ↻</button>
     </div>
 
     <div class="date-bar" aria-label="Menu date navigation">
@@ -52,27 +53,28 @@
     </div>
 
     <p id="dashboardStatus" class="muted" role="status">Loading UCSC menus…</p>
-    <p class="scroll-hint">Dining halls come first, then cafés and markets. Swipe, drag, or use your mouse wheel to move sideways.</p>
+    <p class="scroll-hint"><strong>Dining halls first.</strong> Cafés and markets come after. Put your mouse over the cards and use the normal scroll wheel to move sideways, or swipe on touch screens.</p>
     <div id="diningOverview" class="dining-grid" aria-live="polite"></div>
 
     <section class="bulk-planner" id="bulkPlanner" aria-labelledby="bulkTitle">
       <div class="bulk-head">
         <div>
-          <p class="eyebrow">AUTOMATIC MEAL PLANNER</p>
-          <h2 id="bulkTitle">Your meal plan</h2>
-          <p id="bulkSubtitle" class="muted">Your daily calorie and protein goals are automatically divided across the posted meals for this location.</p>
+          <p class="eyebrow">RECOMMENDED PLATES</p>
+          <h2 id="bulkTitle">What to get</h2>
+          <p id="bulkSubtitle" class="muted">We keep foods together by station so the recommendation feels like a real plate, not a random macro list.</p>
         </div>
         <div class="bulk-target">
           <span id="goalModeBadge">YOUR GOAL</span>
-          <strong id="bulkTargetBadge">Set your goals</strong>
+          <strong id="bulkTargetBadge">Loading profile…</strong>
         </div>
       </div>
 
+      <div id="profileSummary" class="profile-summary"></div>
       <div id="bulkPlan" class="bulk-plan" aria-live="polite"></div>
 
       <div class="goal-link-row">
-        <span id="dailyGoalSummary" class="muted">Set your daily goals once and the planner handles the meal targets automatically.</span>
-        <a class="button-link" href="./goals.html">Edit goals</a>
+        <span id="dailyGoalSummary" class="muted">Your saved plan is used automatically.</span>
+        <a class="button-link" href="./goals.html">Edit my plan</a>
       </div>
     </section>
 
@@ -97,7 +99,7 @@
       <div id="mealTabs" class="meal-tabs" aria-label="Meal periods"></div>
 
       <div class="menu-tools">
-        <label><input id="vegetarianOnly" type="checkbox"> Vegetarian & vegan only</label>
+        <label><input id="profileSafeOnly" type="checkbox" checked> Only foods that fit my saved profile</label>
         <label class="search-label">Find a food<input id="menuSearch" type="search" placeholder="Search tofu, pizza, beans…"></label>
         <label>Sort by<select id="menuSort"><option value="station">Dining station</option><option value="alpha">A to Z</option></select></label>
       </div>
@@ -115,8 +117,8 @@
   </section>
 
   <footer>
-    <span>Built from UCSC Dining's posted menus and nutrition labels. The planner never invents nutrition values or menu items.</span>
-    <a href="./goals.html">Meal goals</a>
+    <span>Built from UCSC Dining's posted menus and nutrition labels. Missing nutrition or ingredient information is never guessed.</span>
+    <a href="./goals.html">My Plan</a>
   </footer>
 </main>
 </body>

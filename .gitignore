@@ -1,5 +1,9 @@
 node_modules/
 .env
 data/*
-!data/menus.json
+!data/index.json
+!data/dates/
+!data/dates/**
+!data/details/
+!data/details/**
 *.log
