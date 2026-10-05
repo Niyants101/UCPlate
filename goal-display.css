@@ -1,0 +1,46 @@
+.goal-target-card{
+  min-width:300px;
+  max-width:360px;
+  padding:16px 18px;
+  gap:7px;
+  text-align:left;
+}
+.goal-mode-pill{
+  display:inline-flex;
+  width:max-content;
+  padding:5px 8px;
+  border-radius:999px;
+  background:var(--accent-soft);
+  color:var(--accent)!important;
+  border:1px solid rgba(183,236,114,.24);
+  margin-bottom:3px;
+}
+.goal-target-label{
+  font-size:9px!important;
+  letter-spacing:1.3px!important;
+  color:var(--muted)!important;
+}
+.goal-daily-value{
+  color:var(--text)!important;
+  font-size:24px!important;
+  line-height:1.15;
+}
+.goal-target-divider{
+  height:1px;
+  background:var(--line);
+  margin:7px 0 4px;
+}
+.goal-meal-value{
+  color:var(--accent)!important;
+  font-size:17px!important;
+}
+.goal-target-note{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+@media(max-width:720px){
+  .goal-target-card{max-width:none;width:100%;margin-top:14px}
+  .goal-daily-value{font-size:21px!important}
+}
