@@ -1,3 +1,5 @@
+import './recommendation-carousel.js';
+
 const PREF='college-bulk-pages-v2';
 
 function readPrefs(){
