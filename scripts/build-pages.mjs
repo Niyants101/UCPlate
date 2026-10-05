@@ -72,7 +72,7 @@ for(const date of dates){
     let detailPath=null;
     let bulk=null;
 
-    if(date===today&&location.status==='live'&&location.meals?.length){
+    if(location.status==='live'&&location.meals?.length){
       const previous=await readJSON(new URL(`./details/${date}/${location.id}.json`,dataRoot));
       enrichedMeals=[];
       for(const rawMeal of location.meals){
@@ -124,7 +124,7 @@ for(const date of dates){
       meals:(location.meals||[]).map(shortMeal),
       detailPath
     };
-  },6);
+  },3);
 
   generatedDates.set(date,{date,fetchedAt:dashboard.fetchedAt,locations});
 }
@@ -135,7 +135,7 @@ await mkdir(dateRoot,{recursive:true});
 await mkdir(detailRoot,{recursive:true});
 
 const indexData={
-  version:5,
+  version:6,
   generatedAt:new Date().toISOString(),
   timezone:'America/Los_Angeles',
   dates
