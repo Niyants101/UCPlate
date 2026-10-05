@@ -58,8 +58,8 @@ function enhanceRecommendations(){
 
   const controls=document.createElement('div');
   controls.className='recommendation-carousel-controls';
-  const prev=button('‹','recommendation-carousel-arrow prev','Previous recommended meal');
-  const next=button('›','recommendation-carousel-arrow next','Next recommended meal');
+  const prev=button('← Previous','recommendation-carousel-arrow prev','Previous recommended meal');
+  const next=button('Next →','recommendation-carousel-arrow next','Next recommended meal');
   const status=document.createElement('div');
   status.className='recommendation-carousel-status';
   const count=document.createElement('strong');
@@ -82,7 +82,7 @@ function enhanceRecommendations(){
   function show(index){
     current=(index+slides.length)%slides.length;
     viewport.replaceChildren(slides[current].node);
-    count.textContent=`${current+1} of ${slides.length}`;
+    count.textContent=`Meal ${current+1} of ${slides.length}`;
     label.textContent=slides[current].label;
     dotButtons.forEach((dot,i)=>dot.classList.toggle('active',i===current));
   }
