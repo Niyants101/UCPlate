@@ -101,7 +101,7 @@ function relevantMeal(location){
     const exact=location.meals.find(m=>m.name.toLowerCase()===s.label.toLowerCase());
     if(exact)return exact;
   }
-  if(activeDate===today&&location.bulk?.meal){
+  if(location.bulk?.meal){
     const bulk=location.meals.find(m=>m.name===location.bulk.meal);if(bulk)return bulk;
   }
   if(s.state==='limited'&&s.next){
@@ -209,7 +209,7 @@ function renderSchedule(location){
 }
 function chooseMeal(location){
   if(selectedMeal&&location.meals.some(m=>m.name===selectedMeal))return selectedMeal;
-  if(activeDate===today&&location.bulk?.meal&&location.meals.some(m=>m.name===location.bulk.meal))return location.bulk.meal;
+  if(location.bulk?.meal&&location.meals.some(m=>m.name===location.bulk.meal))return location.bulk.meal;
   return relevantMeal(location)?.name||location.meals?.[0]?.name||'';
 }
 function renderMealTabs(location){
@@ -257,16 +257,19 @@ function renderMealPlan(location){
   $('bulkTargetBadge').textContent=target?`${target.calories} kcal · ${target.protein} g protein`:'Set your plan';
   $('dailyGoalSummary').textContent=goals?`${goals.calories} kcal/day · ${goals.protein} g protein/day · ${dietLabel()}`:'Complete My Plan to personalize meals.';
 
-  if(activeDate!==today){$('bulkSubtitle').textContent='Future menus are for browsing. Personalized plate building is focused on today so nutrition stays tied to the current labels.';root.append(el('p','Return to Today for station plate recommendations.','menu-empty'));return;}
   if(location?.detailPath&&!location.detailLoaded){
-    $('bulkSubtitle').textContent='Menu names are already loaded. Pulling nutrition only for this place now.';
+    $('bulkSubtitle').textContent=`Menu names are loaded for ${dateLabel(activeDate)}. Pulling the posted nutrition labels for this place now.`;
     const box=el('div','','bulk-loading');box.append(el('span','','loading-dot'),el('strong','Loading nutrition for personalized plates'));root.append(box);return;
+  }
+  if(location?.status==='live'&&!location?.detailPath){
+    $('bulkSubtitle').textContent=`The menu is posted for ${dateLabel(activeDate)}, but its nutrition labels are still being indexed.`;
+    root.append(el('p','The full menu is available below. Personalized plates will appear as soon as the next menu refresh finishes indexing the nutrition labels.','menu-empty'));return;
   }
   const meal=location?.meals?.find(m=>m.name===mealForPlan);
   if(!meal||!target){root.append(el('p','No detailed meal data is available for a recommendation here yet.','menu-empty'));return;}
 
   const stations=generateStationPlates({items:meal.items,profile:profile(),target,mealName:meal.name,maxPerStation:2});
-  $('bulkSubtitle').textContent=`Showing cohesive plate options from ${meal.name}. Foods stay grouped by station whenever the menu supports it.`;
+  $('bulkSubtitle').textContent=`Showing cohesive plate options from ${meal.name} on ${dateLabel(activeDate)}. Foods stay grouped by station whenever the menu supports it.`;
   if(!stations.length){
     root.append(el('p','No plate could be recommended from the published labels after applying your eating style, allergies, and avoid-food list. The full menu is below, but nothing filtered out will be suggested as safe.','menu-empty'));return;
   }
@@ -305,7 +308,7 @@ function renderMenuItems(location){
 }
 function detailMessage(location){
   const s=serving(location);
-  if(activeDate!==today)return `Showing ${selectedMeal} for ${dateLabel(activeDate)}.`;
+  if(activeDate!==today)return `Showing ${selectedMeal} for ${dateLabel(activeDate)}. Nutrition and personalized plates use the labels posted for this date.`;
   if(s.state==='limited')return `Continuous Dining is happening now. ${selectedMeal} is shown for planning, but the limited selection may be different.`;
   if(s.state==='closed')return `This location is closed right now on its regular schedule. ${selectedMeal} is shown so you can plan ahead.`;
   if(s.state==='unknown')return 'The menu is posted, but verified serving hours are not built in for this location yet.';
@@ -330,7 +333,7 @@ async function hydrateSelectedLocation(bust=false){
 async function selectLocation(id,scroll){selectedHall=id;selectedMeal=null;savePrefs();renderOverview();renderHallSelect();renderSelectedDetail();hydrateSelectedLocation();if(scroll)$('bulkPlanner').scrollIntoView({behavior:'smooth',block:'start'});}
 async function changeDate(date){
   if(date===activeDate&&dayData)return;activeDate=date;selectedMeal=null;$('dashboardStatus').textContent='Loading this date…';
-  try{dayData=await loadDay(date);renderPage();hydrateSelectedLocation();}catch(error){$('dashboardStatus').textContent=`Menus unavailable: ${error.message}`;}
+  try{dayData=await loadDay(date);renderPage();hydrateSelectedLocation();prefetchDiningHalls();}catch(error){$('dashboardStatus').textContent=`Menus unavailable: ${error.message}`;}
 }
 function prefetchDiningHalls(){
   const work=async()=>{const halls=(dayData?.locations||[]).filter(location=>DINING_HALL_IDS.has(location.id)&&location.detailPath&&location.id!==selectedHall);for(const hall of halls){try{await ensureDetail(hall);}catch{}}};
