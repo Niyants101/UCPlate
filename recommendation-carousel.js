@@ -42,12 +42,29 @@ function enhanceRecommendations(){
         const themeChip=document.createElement('span');
         themeChip.className='station-theme';themeChip.textContent=theme;slideHead.append(themeChip);
       }
-      slide.append(slideHead,option.cloneNode(true));
+      const clonedOption=option.cloneNode(true);
+      slide.append(slideHead,clonedOption);
       slides.push({node:slide,label:`${stationName} · Option ${index+1}`});
     });
   });
 
-  if(slides.length<=1){list.dataset.carouselProcessed='1';return;}
+  if(!slides.length)return;
+
+  // There is exactly one BEST MATCH across the entire recommendation set.
+  // The station renderer marks each station's first option as BEST MATCH, so
+  // normalize those labels here after all station options have been globally ordered.
+  slides.forEach((slide,index)=>{
+    const rank=slide.node.querySelector('.plate-rank');
+    if(rank)rank.textContent=index===0?'BEST MATCH':`OPTION ${index+1}`;
+    slide.label=index===0?`${slide.label} · Best match`:slide.label;
+  });
+
+  if(slides.length===1){
+    list.dataset.carouselProcessed='1';
+    const onlyRank=list.querySelector('.plate-rank');
+    if(onlyRank)onlyRank.textContent='BEST MATCH';
+    return;
+  }
   list.dataset.carouselProcessed='1';
 
   const carousel=document.createElement('section');
