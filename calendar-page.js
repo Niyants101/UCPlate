@@ -14,7 +14,10 @@ if(!prefs.onboardingComplete)location.replace('./goals.html?setup=1');
 let indexData=null;
 let selectedDate=null;
 let events=[];
-let googleScriptPromise=null;
+let googleReady=false;
+let googleBusy=false;
+let oauthError='';
+let tokenClient=null;
 
 function campusDate(now=new Date()){
   return new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
@@ -34,70 +37,131 @@ function saveToken(response){
   sessionStorage.setItem(TOKEN_KEY,JSON.stringify({accessToken:response.access_token,expiresAt:Date.now()+expiresIn*1000}));
 }
 function clearToken(){sessionStorage.removeItem(TOKEN_KEY);}
-function clientId(){return String(window.COLLEGE_FUEL_GOOGLE_CLIENT_ID||'').trim();}
+function clientId(){return String(window.MEALMAP_GOOGLE_CLIENT_ID||window.COLLEGE_FUEL_GOOGLE_CLIENT_ID||'').trim();}
 
 function setConnectionState(){
-  const token=readToken(),configured=Boolean(clientId());
+  const token=readToken();
+  const configured=Boolean(clientId());
+  const connect=$('connectGoogle');
   $('disconnectGoogle').hidden=!token;
-  $('connectGoogle').disabled=!configured;
+
   if(token){
     $('calendarState').textContent='CONNECTED';
     $('calendarState').classList.add('connected');
     $('calendarConnectTitle').textContent='Google Calendar connected';
     $('calendarConnectText').textContent='Read-only access is active for this browser session. Refresh whenever your schedule changes.';
-    $('connectGoogle').textContent='Reconnect Google';
-  }else if(configured){
-    $('calendarState').textContent='READY TO CONNECT';
-    $('calendarState').classList.remove('connected');
-    $('calendarConnectTitle').textContent='Connect Google Calendar';
-    $('calendarConnectText').textContent='Choose your Google account and allow read-only Calendar access. College Fuel never asks for your Google password.';
-    $('connectGoogle').textContent='Connect Google Calendar';
-  }else{
-    $('calendarState').textContent='UNAVAILABLE';
-    $('calendarState').classList.remove('connected');
-    $('calendarConnectTitle').textContent='Google Calendar is temporarily unavailable';
-    $('calendarConnectText').textContent='The site connection is not configured correctly. Try again later.';
-    $('connectGoogle').textContent='Google Calendar unavailable';
-  }
-}
-
-function loadGoogleIdentity(){
-  if(window.google?.accounts?.oauth2)return Promise.resolve();
-  if(googleScriptPromise)return googleScriptPromise;
-  googleScriptPromise=new Promise((resolve,reject)=>{
-    const script=document.createElement('script');
-    script.src='https://accounts.google.com/gsi/client';script.async=true;script.defer=true;
-    script.onload=()=>resolve();script.onerror=()=>reject(new Error('Google sign-in could not load.'));
-    document.head.append(script);
-  });
-  return googleScriptPromise;
-}
-
-async function connectGoogle(){
-  const id=clientId();
-  if(!id){
-    $('calendarConnectText').textContent='Google Calendar is temporarily unavailable. Please try again later.';
+    connect.textContent=googleBusy?'Opening Google…':'Reconnect Google';
+    connect.disabled=googleBusy||!googleReady;
     return;
   }
-  $('connectGoogle').disabled=true;$('connectGoogle').textContent='Opening Google…';
-  try{
-    await loadGoogleIdentity();
-    await new Promise((resolve,reject)=>{
-      const tokenClient=google.accounts.oauth2.initTokenClient({
-        client_id:id,
-        scope:'https://www.googleapis.com/auth/calendar.events.readonly',
-        callback:response=>{
-          if(response.error){reject(new Error(response.error_description||response.error));return;}
-          saveToken(response);resolve();
-        }
-      });
-      tokenClient.requestAccessToken({prompt:readToken()?'':'consent'});
-    });
+
+  $('calendarState').classList.remove('connected');
+  if(!configured){
+    $('calendarState').textContent='UNAVAILABLE';
+    $('calendarConnectTitle').textContent='Google Calendar is temporarily unavailable';
+    $('calendarConnectText').textContent='MealMap is missing its Google connection configuration.';
+    connect.textContent='Google Calendar unavailable';
+    connect.disabled=true;
+    return;
+  }
+
+  if(oauthError){
+    $('calendarState').textContent='NEEDS ATTENTION';
+    $('calendarConnectTitle').textContent='Google Calendar did not open';
+    $('calendarConnectText').textContent=oauthError;
+    connect.textContent='Try Google again';
+    connect.disabled=!googleReady||googleBusy;
+    return;
+  }
+
+  if(!googleReady){
+    $('calendarState').textContent='LOADING GOOGLE';
+    $('calendarConnectTitle').textContent='Preparing Google Calendar';
+    $('calendarConnectText').textContent='MealMap is loading Google sign-in so the account chooser can open immediately.';
+    connect.textContent='Loading Google…';
+    connect.disabled=true;
+    return;
+  }
+
+  $('calendarState').textContent='READY TO CONNECT';
+  $('calendarConnectTitle').textContent='Connect Google Calendar';
+  $('calendarConnectText').textContent='Choose your Google account and allow read-only Calendar access. MealMap never asks for your Google password.';
+  connect.textContent=googleBusy?'Opening Google…':'Connect Google Calendar';
+  connect.disabled=googleBusy;
+}
+
+async function waitForGoogleIdentity(timeout=10000){
+  const started=Date.now();
+  while(Date.now()-started<timeout){
+    if(window.google?.accounts?.oauth2)return;
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  throw new Error('Google sign-in could not load. Check your internet connection or browser content blockers, then refresh the page.');
+}
+
+async function handleTokenResponse(response){
+  googleBusy=false;
+  if(response?.error){
+    oauthError=response.error_description||response.error||'Google did not complete sign-in.';
     setConnectionState();
-    await loadCalendarDay(true);
+    return;
+  }
+  if(!response?.access_token){
+    oauthError='Google did not return Calendar access. Please try again.';
+    setConnectionState();
+    return;
+  }
+  oauthError='';
+  saveToken(response);
+  setConnectionState();
+  await loadCalendarDay(true);
+}
+
+async function prepareGoogleIdentity(){
+  if(!clientId()){
+    setConnectionState();
+    return;
+  }
+  try{
+    await waitForGoogleIdentity();
+    tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:clientId(),
+      scope:'https://www.googleapis.com/auth/calendar.events.readonly',
+      callback:handleTokenResponse,
+      error_callback:error=>{
+        googleBusy=false;
+        const type=error?.type||'';
+        oauthError=type==='popup_failed_to_open'
+          ? 'Your browser blocked the Google sign-in popup. Allow popups for this site and try again.'
+          : type==='popup_closed'
+            ? 'The Google sign-in window was closed before Calendar was connected.'
+            : `Google sign-in could not open${type?` (${type})`:''}. Please try again.`;
+        setConnectionState();
+      }
+    });
+    googleReady=true;
+    oauthError='';
   }catch(error){
-    $('calendarConnectText').textContent=`Could not connect: ${error.message}`;
-  }finally{
+    googleReady=false;
+    oauthError=error.message||'Google sign-in could not load.';
+  }
+  setConnectionState();
+}
+
+function connectGoogle(){
+  oauthError='';
+  if(!googleReady||!tokenClient){
+    oauthError='Google sign-in is still loading. Refresh the page and try again.';
+    setConnectionState();
+    return;
+  }
+  googleBusy=true;
+  setConnectionState();
+  try{
+    tokenClient.requestAccessToken({prompt:readToken()?'':'consent'});
+  }catch(error){
+    googleBusy=false;
+    oauthError=error.message||'Google sign-in could not open.';
     setConnectionState();
   }
 }
@@ -168,7 +232,7 @@ function renderDay(day){
   $('windowCount').textContent=readToken()?`${suggestions.length} suggested meal window${suggestions.length===1?'':'s'}`:'Waiting for your day';
   $('locationLogic').textContent=prefs.hall?'Saved dining choice + serving schedule':'Serving schedule only';
   const root=$('mealWindows');root.replaceChildren();
-  if(!readToken())root.append(el('p','Connect Google Calendar and College Fuel will fit meals between your classes.','menu-empty'));
+  if(!readToken())root.append(el('p','Connect Google Calendar and MealMap will fit meals between your classes.','menu-empty'));
   else if(!day)root.append(el('p','UCSC has no posted menu snapshot for this date yet, so meal timing is not available.','menu-empty'));
   else if(!suggestions.length)root.append(el('p','No full meal window of at least 25 minutes fits between your events and the posted serving schedule.','menu-empty'));
   else suggestions.forEach((candidate,index)=>root.append(suggestionCard(candidate,index)));
@@ -195,13 +259,15 @@ async function loadCalendarDay(force=false){
 }
 
 async function init(){
-  selectedDate=campusDate();$('calendarDate').value=selectedDate;
+  selectedDate=campusDate();
+  $('calendarDate').value=selectedDate;
   try{indexData=await fetchJSON('./data/index.json');}catch{indexData={dates:[]};}
-  setConnectionState();
   $('calendarDate').addEventListener('change',()=>loadCalendarDay());
   $('connectGoogle').addEventListener('click',connectGoogle);
-  $('disconnectGoogle').addEventListener('click',()=>{clearToken();events=[];setConnectionState();loadCalendarDay();});
+  $('disconnectGoogle').addEventListener('click',()=>{clearToken();events=[];oauthError='';setConnectionState();loadCalendarDay();});
   $('refreshCalendar').addEventListener('click',()=>loadCalendarDay(true));
+  setConnectionState();
+  prepareGoogleIdentity();
   await loadCalendarDay();
 }
 

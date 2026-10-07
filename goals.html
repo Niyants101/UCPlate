@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
-  <title>My Plan · College Fuel</title>
+  <title>My Plan · MealMap</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./ux.css">
   <script type="module" src="./goals.js"></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="./">COLLEGE FUEL</a>
+  <a class="brand" href="./">MEALMAP</a>
   <nav class="site-nav" aria-label="Main navigation">
     <a href="./">Dining</a>
     <a class="active" href="./goals.html">My Plan</a>
@@ -24,7 +24,7 @@
   <section class="goals-hero onboarding-hero">
     <p class="eyebrow" id="setupEyebrow">SET UP ONCE</p>
     <h1 id="setupTitle">Make every menu<br><em>fit you.</em></h1>
-    <p class="intro" id="setupIntro">Give College Fuel your goals and food preferences once. After that, opening the dining page should be enough.</p>
+    <p class="intro" id="setupIntro">Give MealMap your goals and food preferences once. After that, opening the dining page should be enough.</p>
   </section>
 
   <section class="onboarding-shell">
@@ -61,7 +61,7 @@
           <label class="big-input-card"><span>Daily protein</span><div class="input-with-unit"><input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="140" required><b>g</b></div></label>
         </div>
 
-        <div class="goal-explainer"><div class="explainer-icon">✓</div><div><strong>No per-meal math.</strong><p>College Fuel turns your daily targets into a starting target for the current meal, then searches the actual UCSC station foods for a close plate.</p></div></div>
+        <div class="goal-explainer"><div class="explainer-icon">✓</div><div><strong>No per-meal math.</strong><p>MealMap turns your daily targets into a starting target for the current meal, then searches the actual UCSC station foods for a close plate.</p></div></div>
       </section>
 
       <section class="wizard-step" data-step="2" hidden>
@@ -94,7 +94,7 @@
           </div>
         </fieldset>
         <label class="avoid-foods-card"><span>Foods you personally avoid</span><small>Optional. Separate with commas. Example: pork, mushrooms, mayo</small><textarea id="avoidFoods" rows="3" placeholder="pork, mushrooms"></textarea></label>
-        <div class="allergy-note"><strong>Allergy safety note</strong><p>College Fuel can filter using UCSC's published labels, but it cannot verify cross-contact, substitutions, or special preparation. For serious allergies, confirm with dining staff before eating.</p></div>
+        <div class="allergy-note"><strong>Allergy safety note</strong><p>MealMap can filter using UCSC's published labels, but it cannot verify cross-contact, substitutions, or special preparation. For serious allergies, confirm with dining staff before eating.</p></div>
       </section>
 
       <p id="goalError" class="form-error" role="alert"></p>
@@ -104,7 +104,7 @@
 
   <section class="current-goals current-profile"><div><span class="eyebrow">SAVED PROFILE</span><strong id="currentGoalSummary">No plan saved yet.</strong><p id="currentPreferenceSummary" class="muted">Your settings stay in this browser.</p></div><button id="clearGoals" class="quiet-action" type="button">Clear profile</button></section>
 
-  <footer><span>Your plan is stored only in this browser. College Fuel follows the targets you enter and does not calculate a deficit, maintenance level, or surplus for you.</span><div class="links"><a href="./">Dining</a><a href="./calendar.html">My Day</a></div></footer>
+  <footer><span>Your plan is stored only in this browser. MealMap follows the targets you enter and does not calculate a deficit, maintenance level, or surplus for you.</span><div class="links"><a href="./">Dining</a><a href="./calendar.html">My Day</a></div></footer>
 </main>
 </body>
 </html>
