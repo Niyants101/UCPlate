@@ -2,7 +2,6 @@ import {normalizeGoogleEvents,buildMealSuggestions,formatMinutes} from './calend
 
 const PREF='college-bulk-pages-v2';
 const TOKEN_KEY='college-fuel-google-calendar-token';
-const CLIENT_OVERRIDE_KEY='college-fuel-google-client-id';
 const FOCUS_KEY='college-fuel-calendar-focus';
 const TZ='America/Los_Angeles';
 const $=id=>document.getElementById(id);
@@ -35,24 +34,30 @@ function saveToken(response){
   sessionStorage.setItem(TOKEN_KEY,JSON.stringify({accessToken:response.access_token,expiresAt:Date.now()+expiresIn*1000}));
 }
 function clearToken(){sessionStorage.removeItem(TOKEN_KEY);}
-function clientId(){return String(window.COLLEGE_FUEL_GOOGLE_CLIENT_ID||localStorage.getItem(CLIENT_OVERRIDE_KEY)||'').trim();}
+function clientId(){return String(window.COLLEGE_FUEL_GOOGLE_CLIENT_ID||'').trim();}
 
 function setConnectionState(){
   const token=readToken(),configured=Boolean(clientId());
-  $('calendarSetupNotice').hidden=configured;
   $('disconnectGoogle').hidden=!token;
+  $('connectGoogle').disabled=!configured;
   if(token){
     $('calendarState').textContent='CONNECTED';
     $('calendarState').classList.add('connected');
     $('calendarConnectTitle').textContent='Google Calendar connected';
     $('calendarConnectText').textContent='Read-only access is active for this browser session. Refresh whenever your schedule changes.';
     $('connectGoogle').textContent='Reconnect Google';
-  }else{
-    $('calendarState').textContent=configured?'READY TO CONNECT':'SETUP NEEDED';
+  }else if(configured){
+    $('calendarState').textContent='READY TO CONNECT';
     $('calendarState').classList.remove('connected');
-    $('calendarConnectTitle').textContent=configured?'Connect Google Calendar':'Google connection needs one-time setup';
-    $('calendarConnectText').textContent=configured?'College Fuel will only request read-only calendar access.':'The meal timing page is ready, but the site owner still needs to add a Google OAuth Web client ID.';
+    $('calendarConnectTitle').textContent='Connect Google Calendar';
+    $('calendarConnectText').textContent='Choose your Google account and allow read-only Calendar access. College Fuel never asks for your Google password.';
     $('connectGoogle').textContent='Connect Google Calendar';
+  }else{
+    $('calendarState').textContent='UNAVAILABLE';
+    $('calendarState').classList.remove('connected');
+    $('calendarConnectTitle').textContent='Google Calendar is temporarily unavailable';
+    $('calendarConnectText').textContent='The site connection is not configured correctly. Try again later.';
+    $('connectGoogle').textContent='Google Calendar unavailable';
   }
 }
 
@@ -71,8 +76,7 @@ function loadGoogleIdentity(){
 async function connectGoogle(){
   const id=clientId();
   if(!id){
-    $('calendarSetupNotice').hidden=false;
-    $('calendarSetupNotice').scrollIntoView({behavior:'smooth',block:'center'});
+    $('calendarConnectText').textContent='Google Calendar is temporarily unavailable. Please try again later.';
     return;
   }
   $('connectGoogle').disabled=true;$('connectGoogle').textContent='Opening Google…';
@@ -94,7 +98,6 @@ async function connectGoogle(){
   }catch(error){
     $('calendarConnectText').textContent=`Could not connect: ${error.message}`;
   }finally{
-    $('connectGoogle').disabled=false;
     setConnectionState();
   }
 }
@@ -199,14 +202,6 @@ async function init(){
   $('connectGoogle').addEventListener('click',connectGoogle);
   $('disconnectGoogle').addEventListener('click',()=>{clearToken();events=[];setConnectionState();loadCalendarDay();});
   $('refreshCalendar').addEventListener('click',()=>loadCalendarDay(true));
-  $('saveDeveloperClientId').addEventListener('click',()=>{
-    const value=$('developerClientId').value.trim();
-    if(!/\.apps\.googleusercontent\.com$/.test(value)){
-      $('calendarConnectText').textContent='That does not look like a Google OAuth client ID.';return;
-    }
-    localStorage.setItem(CLIENT_OVERRIDE_KEY,value);setConnectionState();$('calendarSetupNotice').hidden=true;
-  });
-  const override=localStorage.getItem(CLIENT_OVERRIDE_KEY);if(override)$('developerClientId').value=override;
   await loadCalendarDay();
 }
 

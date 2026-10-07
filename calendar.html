@@ -40,25 +40,6 @@
     </aside>
   </section>
 
-  <section id="calendarSetupNotice" class="calendar-setup" hidden>
-    <div>
-      <p class="eyebrow">ONE-TIME SITE OWNER SETUP</p>
-      <h2>Google OAuth still needs a client ID</h2>
-      <p>The public site can connect directly to Google Calendar, but Google requires a Web OAuth client for this domain first. The client ID is public and safe to use in a browser.</p>
-    </div>
-    <details>
-      <summary>Developer setup</summary>
-      <ol>
-        <li>Enable the Google Calendar API in Google Cloud.</li>
-        <li>Create an OAuth 2.0 Client ID for a Web application.</li>
-        <li>Add <code>https://niyants101.github.io</code> as an authorized JavaScript origin.</li>
-        <li>Paste the client ID below to test it in this browser. After it works, add it to <code>calendar-config.js</code> so every user gets the Connect button.</li>
-      </ol>
-      <label>Google OAuth Client ID<input id="developerClientId" type="text" autocomplete="off" placeholder="1234...apps.googleusercontent.com"></label>
-      <button id="saveDeveloperClientId" type="button">Save locally for testing</button>
-    </details>
-  </section>
-
   <section class="calendar-dashboard">
     <div class="calendar-toolbar">
       <div>
