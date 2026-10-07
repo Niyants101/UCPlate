@@ -1,22 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-requires-live-campus="true">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
-  <title>MealMap · UCSC Meal Helper</title>
+  <title>UCPlate · UC Dining Helper</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./ux.css">
   <link rel="stylesheet" href="./goal-display.css">
+  <link rel="stylesheet" href="./campus.css">
+  <script type="module" src="./campus-ui.js"></script>
   <script type="module" src="./app.js"></script>
   <script type="module" src="./goal-display.js"></script>
   <script type="module" src="./calendar-focus.js"></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="./">MEALMAP</a>
+  <a class="brand" href="./">UCPLATE</a>
   <nav class="site-nav" aria-label="Main navigation">
+    <a class="campus-nav" data-campus-label href="./campus.html">Choose campus</a>
     <a class="active" href="./">Dining</a>
     <a href="./goals.html">My Plan</a>
     <a href="./calendar.html">My Day</a>
@@ -26,18 +29,18 @@
 <main>
   <section class="hero">
     <div>
-      <p class="eyebrow">YOUR UCSC MEAL HELPER</p>
+      <p class="eyebrow">YOUR UC MEAL HELPER</p>
       <h1>Your next meal,<br><em>already figured out.</em></h1>
-      <p class="intro">Choose where you want to eat. MealMap uses your saved goals, eating style, allergies, UCSC menu data, and the current meal period to recommend actual plates from each station.</p>
+      <p class="intro">Choose where you want to eat. UCPlate combines your saved goals, eating style, allergies, official campus menu data, and the current meal period to recommend actual plates from each station.</p>
     </div>
     <aside class="now-card">
       <span class="tag" id="dateContext">RIGHT NOW</span>
       <strong id="campusClock">Loading campus time…</strong>
-      <p id="snapshotAge">Loading the latest UCSC menu snapshot…</p>
+      <p id="snapshotAge">Loading the latest campus dining snapshot…</p>
     </aside>
   </section>
 
-  <div id="notice" role="status">Recommendations only use UCSC-published menu and nutrition data. Allergy filtering uses published labels and does not replace checking cross-contact or special preparation with dining staff.</div>
+  <div id="notice" role="status">Recommendations only use campus-published menu and nutrition data. Allergy filtering uses published labels and does not replace checking cross-contact or special preparation with dining staff.</div>
 
   <section class="live-menu">
     <div class="section-head">
@@ -56,7 +59,7 @@
       <button id="dateToday" type="button">Today</button>
     </div>
 
-    <p id="dashboardStatus" class="muted" role="status">Loading UCSC menus…</p>
+    <p id="dashboardStatus" class="muted" role="status">Loading campus menus…</p>
     <p class="scroll-hint"><strong>Dining halls first.</strong> Cafés and markets come after. Put your mouse over the cards and use the normal scroll wheel to move sideways, or swipe on touch screens.</p>
     <div id="diningOverview" class="dining-grid" aria-live="polite"></div>
 
@@ -112,17 +115,17 @@
       <div id="menuItems" aria-live="polite"></div>
 
       <div class="links">
-        <a id="menuLink" target="_blank" rel="noreferrer">View UCSC source ↗</a>
+        <a id="menuLink" target="_blank" rel="noreferrer">View official dining source ↗</a>
         <span id="menuUpdated" class="muted"></span>
       </div>
 
-      <p class="muted">Click a food name when an exact UCSC nutrition label is available. During Continuous Dining, the full Lunch or Dinner menu should not be assumed to be available.</p>
+      <p class="muted">Click a food name when an exact campus nutrition label is available. During limited or continuous service, a full Lunch or Dinner menu should not be assumed to be available.</p>
     </section>
   </section>
 
   <footer>
-    <span>Built from UCSC Dining's posted menus and nutrition labels. Missing nutrition or ingredient information is never guessed.</span>
-    <div class="links"><a href="./goals.html">My Plan</a><a href="./calendar.html">My Day</a></div>
+    <span>Built from official campus dining menus and published nutrition labels where available. Missing nutrition or ingredient information is never guessed. UCPlate is independent and is not affiliated with or endorsed by the University of California.</span>
+    <div class="links"><a href="./campus.html">Campus</a><a href="./goals.html">My Plan</a><a href="./calendar.html">My Day</a></div>
   </footer>
 </main>
 </body>
