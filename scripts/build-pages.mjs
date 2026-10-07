@@ -2,6 +2,8 @@ import {mkdir,rm,writeFile,readFile} from 'node:fs/promises';
 import {getDashboard,getMenu} from '../menus.mjs';
 import {getDaySchedule,getServingStatus} from '../dining-hours.mjs';
 
+const CAMPUS_ID='ucsc';
+const ADAPTER_ID='ucsc-foodpro';
 const dataRoot=new URL('../data/',import.meta.url);
 const dateRoot=new URL('../data/dates/',import.meta.url);
 const detailRoot=new URL('../data/details/',import.meta.url);
@@ -103,6 +105,8 @@ for(const date of dates){
       if(enrichedMeals.some(isDetailed)){
         detailPath=`./data/details/${date}/${location.id}.json`;
         generatedDetails.set(`${date}/${location.id}`,{
+          campusId:CAMPUS_ID,
+          adapter:ADAPTER_ID,
           date,
           id:location.id,
           name:location.name,
@@ -126,7 +130,7 @@ for(const date of dates){
     };
   },3);
 
-  generatedDates.set(date,{date,fetchedAt:dashboard.fetchedAt,locations});
+  generatedDates.set(date,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,fetchedAt:dashboard.fetchedAt,locations});
 }
 
 await rm(dateRoot,{recursive:true,force:true});
@@ -135,7 +139,9 @@ await mkdir(dateRoot,{recursive:true});
 await mkdir(detailRoot,{recursive:true});
 
 const indexData={
-  version:6,
+  version:7,
+  campusId:CAMPUS_ID,
+  adapter:ADAPTER_ID,
   generatedAt:new Date().toISOString(),
   timezone:'America/Los_Angeles',
   dates
@@ -152,4 +158,4 @@ for(const [key,detail] of generatedDetails){
   await writeFile(new URL(`./${id}.json`,folder),JSON.stringify(detail));
 }
 
-console.log(`Built lightweight index for ${dates.length} posted date(s), ${first.locations.length} UCSC locations, and ${generatedDetails.size} lazy nutrition detail file(s).`);
+console.log(`Built UCPlate ${CAMPUS_ID} snapshot for ${dates.length} posted date(s), ${first.locations.length} locations, and ${generatedDetails.size} lazy nutrition detail file(s).`);
