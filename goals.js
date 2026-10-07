@@ -1,3 +1,5 @@
+import {UC_CAMPUSES,campusById,effectiveCampusId,campusHasLiveMenus} from './campuses.mjs';
+
 const PREF='college-bulk-pages-v2';
 const $=id=>document.getElementById(id);
 const setupMode=new URLSearchParams(location.search).get('setup')==='1';
@@ -15,9 +17,32 @@ const dietLabel=diet=>({omnivore:'Everything',vegetarian:'Vegetarian',vegan:'Veg
 function parseAvoidFoods(value){
   return [...new Set(String(value||'').split(/[\n,]+/).map(item=>item.trim()).filter(Boolean))];
 }
+function populateCampusSelect(){
+  const select=$('campusId');
+  const current=effectiveCampusId(prefs);
+  const options=[];
+  if(!current){
+    const placeholder=document.createElement('option');
+    placeholder.value='';placeholder.textContent='Choose your UC campus';placeholder.disabled=true;placeholder.selected=true;
+    options.push(placeholder);
+  }
+  for(const campus of UC_CAMPUSES){
+    const option=document.createElement('option');
+    option.value=campus.id;
+    option.textContent=`${campus.name}${campusHasLiveMenus(campus.id)?' · live menus':''}`;
+    options.push(option);
+  }
+  select.replaceChildren(...options);
+  if(current)select.value=current;
+}
 function validateGoals(){
+  const campusId=$('campusId').value;
   const calories=Number($('dailyCalories').value);
   const protein=Number($('dailyProtein').value);
+  if(!campusById(campusId)){
+    $('goalError').textContent='Choose your UC campus.';
+    return false;
+  }
   if(!Number.isFinite(calories)||calories<500||calories>6000){
     $('goalError').textContent='Enter a daily calorie goal between 500 and 6000.';
     return false;
@@ -32,12 +57,14 @@ function validateGoals(){
 function renderCurrent(){
   const calories=Number(prefs.dailyCalories);
   const protein=Number(prefs.dailyProtein);
+  const campus=campusById(effectiveCampusId(prefs));
   if(Number.isFinite(calories)&&Number.isFinite(protein)&&prefs.onboardingComplete){
-    $('currentGoalSummary').textContent=`${modeLabel(prefs.goalMode)} · ${calories} kcal/day · ${protein} g protein/day`;
+    $('currentGoalSummary').textContent=`${campus?.name||'UC campus'} · ${modeLabel(prefs.goalMode)} · ${calories} kcal/day · ${protein} g protein/day`;
     const allergies=(prefs.allergens||[]).map(key=>allergenLabels[key]||key);
     const parts=[dietLabel(prefs.dietPreference)];
     if(allergies.length)parts.push(`Avoid allergens: ${allergies.join(', ')}`);
     if((prefs.avoidFoods||[]).length)parts.push(`Avoid foods: ${prefs.avoidFoods.join(', ')}`);
+    if(campus&&!campusHasLiveMenus(campus.id))parts.push('Campus menu adapter queued');
     $('currentPreferenceSummary').textContent=parts.join(' · ');
   }else{
     $('currentGoalSummary').textContent='No complete plan saved yet.';
@@ -68,6 +95,7 @@ function goStep(next){
   renderStep();
 }
 function prefill(){
+  populateCampusSelect();
   if(Number.isFinite(Number(prefs.dailyCalories)))$('dailyCalories').value=prefs.dailyCalories;
   if(Number.isFinite(Number(prefs.dailyProtein)))$('dailyProtein').value=prefs.dailyProtein;
 
@@ -84,9 +112,9 @@ function prefill(){
 }
 
 if(setupMode||!prefs.onboardingComplete){
-  $('setupEyebrow').textContent='WELCOME TO MEALMAP';
+  $('setupEyebrow').textContent='WELCOME TO UCPLATE';
   $('setupTitle').innerHTML='Three quick steps.<br><em>Then you are done.</em>';
-  $('setupIntro').textContent='Set your goals, eating style, and food safety preferences once. The dining page will use them automatically from then on.';
+  $('setupIntro').textContent='Choose your UC campus, set your goals, eating style, and food safety preferences once. UCPlate keeps using them automatically.';
 }
 
 prefill();
@@ -108,6 +136,8 @@ $('profileForm').addEventListener('submit',event=>{
     renderStep();
     return;
   }
+  const campusId=$('campusId').value;
+  const previousCampus=effectiveCampusId(prefs);
   const calories=Math.round(Number($('dailyCalories').value));
   const protein=Math.round(Number($('dailyProtein').value));
   const goalMode=document.querySelector('input[name="goalMode"]:checked')?.value||'maintain';
@@ -115,15 +145,18 @@ $('profileForm').addEventListener('submit',event=>{
   const allergens=[...document.querySelectorAll('input[name="allergen"]:checked')].map(input=>input.value);
   const avoidFoods=parseAvoidFoods($('avoidFoods').value);
 
-  prefs={...prefs,dailyCalories:calories,dailyProtein:protein,goalMode,dietPreference,allergens,avoidFoods,onboardingComplete:true,profileVersion:1};
+  prefs={...prefs,campusId,dailyCalories:calories,dailyProtein:protein,goalMode,dietPreference,allergens,avoidFoods,onboardingComplete:true,profileVersion:2};
+  if(previousCampus&&previousCampus!==campusId)delete prefs.hall;
   localStorage.setItem(PREF,JSON.stringify(prefs));
-  window.location.href='./';
+  window.location.href=campusHasLiveMenus(campusId)?'./':`./campus.html?campus=${encodeURIComponent(campusId)}`;
 });
 
 $('clearGoals').addEventListener('click',()=>{
-  const keep={hall:prefs.hall,sort:prefs.sort};
+  const campusId=effectiveCampusId(prefs);
+  const keep={campusId,sort:prefs.sort,safeOnly:prefs.safeOnly};
   prefs=keep;
   localStorage.setItem(PREF,JSON.stringify(prefs));
+  populateCampusSelect();
   $('dailyCalories').value='';
   $('dailyProtein').value='';
   $('avoidFoods').value='';
