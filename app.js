@@ -1,11 +1,12 @@
 import {getServingStatus} from './dining-hours.mjs';
 import {generateStationPlates} from './plate-planner.mjs';
+import {campusById,effectiveCampusId,campusHasLiveMenus,campusDataRoot} from './campuses.mjs';
 
 const $=id=>document.getElementById(id);
 const el=(tag,text='',cls='')=>{const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;};
 const TZ='America/Los_Angeles';
 const PREF='college-bulk-pages-v2';
-const DINING_HALL_IDS=new Set(['40','05','20','25','30']);
+const UCSC_DINING_HALL_IDS=new Set(['40','05','20','25','30']);
 const ALLERGEN_GROUPS={
   milk:['milk','dairy'],egg:['egg'],'wheat-gluten':['wheat','gluten'],soy:['soy'],peanut:['peanut'],
   'tree-nut':['tree nut','treenut','almond','cashew','walnut','pecan','pistachio','hazelnut'],
@@ -16,6 +17,9 @@ const ALLERGEN_LABELS={milk:'Milk',egg:'Egg','wheat-gluten':'Wheat / Gluten',soy
 let prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF)||'{}');}catch{prefs={};}
 const needsSetup=!prefs.onboardingComplete;
+const campusId=effectiveCampusId(prefs);
+const campus=campusById(campusId);
+const dataRoot=campusDataRoot(campusId);
 
 let indexData=null;
 let dayData=null;
@@ -44,7 +48,7 @@ function goalModeLabel(){return ({cut:'CUT',maintain:'MAINTAIN',gain:'GAIN'})[da
 function dietLabel(){return ({omnivore:'Everything',vegetarian:'Vegetarian',vegan:'Vegan'})[profile().dietPreference]||'Everything';}
 function savePrefs(){
   try{
-    prefs={...prefs,hall:selectedHall,sort:$('menuSort')?.value||'station',safeOnly:$('profileSafeOnly')?.checked!==false};
+    prefs={...prefs,campusId:campusId||prefs.campusId,hall:selectedHall,sort:$('menuSort')?.value||'station',safeOnly:$('profileSafeOnly')?.checked!==false};
     localStorage.setItem(PREF,JSON.stringify(prefs));
   }catch{}
 }
@@ -77,7 +81,12 @@ function updateClock(){
 
 function locationById(id){return dayData?.locations?.find(x=>x.id===id)||null;}
 function serving(location){return getServingStatus(activeDate,location.id,new Date());}
-function locationGroup(location){return DINING_HALL_IDS.has(location.id)||/Dining Hall/i.test(location.sourceName||location.name)?0:1;}
+function isDiningHall(location){
+  if(location?.kind==='dining-hall')return true;
+  if(campusId==='ucsc'&&UCSC_DINING_HALL_IDS.has(location.id))return true;
+  return /Dining Hall/i.test(location.sourceName||location.name||'');
+}
+function locationGroup(location){return isDiningHall(location)?0:1;}
 function rank(location){
   const state=serving(location).state;
   return ({open:0,limited:1,unknown:2,scheduled:3,closed:4}[state]??5)+(location.status==='live'?0:10);
@@ -114,7 +123,11 @@ function mealTargets(location,mealName){
   const count=Math.max(1,location?.meals?.length||3);
   return {calories:Math.max(250,Math.round(goals.calories/count)),protein:Math.max(10,Math.round(goals.protein/count)),mealCount:count,mealName};
 }
-function nutritionLink(item){return typeof item?.source==='string'&&/nutrition\.sa\.ucsc\.edu\/label\.aspx/i.test(item.source)?item.source:null;}
+function nutritionLink(item){
+  const source=item?.nutritionSource||item?.source;
+  if(item?.nutritionStatus==='unavailable')return null;
+  return typeof source==='string'&&/^https?:\/\//i.test(source)?source:null;
+}
 function profileMatches(item,{requireAllergenData=false}={}){
   const p=profile();
   if(p.dietPreference==='vegan'&&item.diet!=='vegan')return false;
@@ -132,7 +145,7 @@ function profileMatches(item,{requireAllergenData=false}={}){
   return true;
 }
 function profileChips(){
-  const p=profile(),chips=[dietLabel(),`${dailyGoals()?.calories||'?'} kcal/day`,`${dailyGoals()?.protein||'?'} g protein/day`];
+  const p=profile(),chips=[campus?.shortName||'UC campus',dietLabel(),`${dailyGoals()?.calories||'?'} kcal/day`,`${dailyGoals()?.protein||'?'} g protein/day`];
   if(p.allergens.length)chips.push(`${p.allergens.length} allergen filter${p.allergens.length===1?'':'s'}`);
   if(p.avoidFoods.length)chips.push(`${p.avoidFoods.length} avoid-food filter${p.avoidFoods.length===1?'':'s'}`);
   return chips;
@@ -145,7 +158,7 @@ async function fetchJSON(path,bust=false){
 }
 async function loadDay(date,bust=false){
   if(!bust&&dayCache.has(date))return dayCache.get(date);
-  const day=await fetchJSON(`./data/dates/${date}.json`,bust);dayCache.set(date,day);return day;
+  const day=await fetchJSON(`${dataRoot}/dates/${date}.json`,bust);dayCache.set(date,day);return day;
 }
 async function ensureDetail(location,bust=false){
   if(!location?.detailPath)return null;
@@ -289,7 +302,7 @@ function renderMenuItems(location){
   const root=$('menuItems');root.replaceChildren();const meal=location?.meals?.find(m=>m.name===selectedMeal);
   if(!meal){root.append(el('p','No menu is posted for this meal.','menu-empty'));return;}
   const query=$('menuSearch').value.trim().toLowerCase(),safeOnly=$('profileSafeOnly').checked;
-  if(safeOnly&&profile().allergens.length&&location.detailPath&&!location.detailLoaded){root.append(el('p','Loading UCSC nutrition labels before applying your allergy filters.','menu-empty'));return;}
+  if(safeOnly&&profile().allergens.length&&location.detailPath&&!location.detailLoaded){root.append(el('p','Loading campus nutrition labels before applying your allergy filters.','menu-empty'));return;}
   let items=meal.items.filter(item=>item.name.toLowerCase().includes(query));
   if(safeOnly)items=items.filter(item=>profileMatches(item,{requireAllergenData:profile().allergens.length>0}));
   if($('menuSort').value==='alpha')items=[...items].sort((a,b)=>a.name.localeCompare(b.name));
@@ -301,7 +314,7 @@ function renderMenuItems(location){
     const wrap=el('section','','station-section');wrap.append(el('h3',section));const grid=el('div','','station-items');
     foods.forEach(item=>{
       const row=el('div','','static-food-row'),left=el('div','','food-copy'),link=nutritionLink(item);
-      const name=link?el('a',item.name,'static-food-name'):el('span',item.name,'static-food-name');if(link){name.href=link;name.target='_blank';name.rel='noreferrer';name.title='Open exact UCSC nutrition label';}left.append(name);
+      const name=link?el('a',item.name,'static-food-name'):el('span',item.name,'static-food-name');if(link){name.href=link;name.target='_blank';name.rel='noreferrer';name.title='Open exact campus nutrition label';}left.append(name);
       const meta=el('div','','food-meta');if(item.serving)meta.append(el('span',item.serving));if(item.calories!==undefined&&item.calories!==null)meta.append(el('span',`${Math.round(Number(item.calories))} kcal`));if(item.protein!==undefined&&item.protein!==null)meta.append(el('span',`${Math.round(Number(item.protein))} g protein`));if(item.diet==='vegan'||item.diet==='vegetarian')meta.append(el('span',item.diet==='vegan'?'Vegan':'Vegetarian',`diet-tag ${item.diet}`));if(link)meta.append(el('span','Nutrition ↗','nutrition-inline'));left.append(meta);row.append(left);grid.append(row);
     });wrap.append(grid);root.append(wrap);
   }
@@ -323,7 +336,7 @@ function ensureSelection(){
   if(!dayData?.locations?.length)return;
   if(!selectedHall||!dayData.locations.some(x=>x.id===selectedHall))selectedHall=[...dayData.locations].sort((a,b)=>locationGroup(a)-locationGroup(b)||rank(a)-rank(b)||a.name.localeCompare(b.name))[0].id;
 }
-function renderPage(){ensureSelection();renderDates();updateClock();renderOverview();renderHallSelect();renderSelectedDetail();$('dashboardStatus').textContent=`Menus loaded. Snapshot updated ${new Date(indexData.generatedAt).toLocaleString()}.`;}
+function renderPage(){ensureSelection();renderDates();updateClock();renderOverview();renderHallSelect();renderSelectedDetail();$('dashboardStatus').textContent=`${campus?.name||'Campus'} menus loaded. Snapshot updated ${new Date(indexData.generatedAt).toLocaleString()}.`;}
 async function hydrateSelectedLocation(bust=false){
   const location=locationById(selectedHall);if(!location?.detailPath||location.detailLoaded)return;
   const token=++detailToken;renderMealPlan(location);
@@ -336,13 +349,13 @@ async function changeDate(date){
   try{dayData=await loadDay(date);renderPage();hydrateSelectedLocation();prefetchDiningHalls();}catch(error){$('dashboardStatus').textContent=`Menus unavailable: ${error.message}`;}
 }
 function prefetchDiningHalls(){
-  const work=async()=>{const halls=(dayData?.locations||[]).filter(location=>DINING_HALL_IDS.has(location.id)&&location.detailPath&&location.id!==selectedHall);for(const hall of halls){try{await ensureDetail(hall);}catch{}}};
+  const work=async()=>{const halls=(dayData?.locations||[]).filter(location=>isDiningHall(location)&&location.detailPath&&location.id!==selectedHall);for(const hall of halls){try{await ensureDetail(hall);}catch{}}};
   if('requestIdleCallback'in window)requestIdleCallback(()=>work(),{timeout:3000});else setTimeout(work,1200);
 }
 async function loadData(bust=false){
-  $('refresh').disabled=true;$('dashboardStatus').textContent='Loading menu list…';
+  $('refresh').disabled=true;$('dashboardStatus').textContent=`Loading ${campus?.name||'campus'} menu list…`;
   try{
-    indexData=await fetchJSON('./data/index.json',bust);const dates=indexData.dates||[];if(!dates.length)throw new Error('No posted menu dates are available.');
+    indexData=await fetchJSON(`${dataRoot}/index.json`,bust);const dates=indexData.dates||[];if(!dates.length)throw new Error('No posted menu dates are available.');
     activeDate=activeDate&&dates.includes(activeDate)?activeDate:(dates.includes(today)?today:dates[0]);if(bust){dayCache.clear();detailCache.clear();detailPromises.clear();}
     dayData=await loadDay(activeDate,bust);renderPage();await hydrateSelectedLocation(bust);prefetchDiningHalls();
   }catch(error){$('dashboardStatus').textContent=`Dining menus unavailable: ${error.message}`;$('diningOverview').replaceChildren(el('p','The published menu snapshot could not be loaded. Try again in a moment.','menu-empty'));$('bulkPlan').replaceChildren(el('p','The meal helper needs the menu snapshot before it can build plates.','menu-empty'));}
@@ -350,6 +363,12 @@ async function loadData(bust=false){
 }
 
 function init(){
+  if(!campus||!campusHasLiveMenus(campus.id)||!dataRoot){
+    const target=new URL('./campus.html',location.href);
+    if(campus?.id)target.searchParams.set('campus',campus.id);
+    location.replace(target.href);
+    return;
+  }
   $('profileSafeOnly').checked=prefs.safeOnly!==false;$('menuSort').value=prefs.sort||'station';
   $('profileSafeOnly').onchange=()=>{savePrefs();if(dayData)renderMenuItems(locationById(selectedHall));};
   $('menuSort').onchange=()=>{savePrefs();if(dayData)renderMenuItems(locationById(selectedHall));};
