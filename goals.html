@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
-  <title>My Plan · MealMap</title>
+  <title>My Plan · UCPlate</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./ux.css">
+  <link rel="stylesheet" href="./campus.css">
+  <script type="module" src="./campus-ui.js"></script>
   <script type="module" src="./goals.js"></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="./">MEALMAP</a>
+  <a class="brand" href="./">UCPLATE</a>
   <nav class="site-nav" aria-label="Main navigation">
+    <a class="campus-nav" data-campus-label href="./campus.html">Choose campus</a>
     <a href="./">Dining</a>
     <a class="active" href="./goals.html">My Plan</a>
     <a href="./calendar.html">My Day</a>
@@ -24,12 +27,12 @@
   <section class="goals-hero onboarding-hero">
     <p class="eyebrow" id="setupEyebrow">SET UP ONCE</p>
     <h1 id="setupTitle">Make every menu<br><em>fit you.</em></h1>
-    <p class="intro" id="setupIntro">Give MealMap your goals and food preferences once. After that, opening the dining page should be enough.</p>
+    <p class="intro" id="setupIntro">Give UCPlate your campus, goals, and food preferences once. After that, the dining and My Day pages can use them automatically.</p>
   </section>
 
   <section class="onboarding-shell">
     <div class="onboarding-progress" aria-label="Setup progress">
-      <button type="button" class="progress-step active" data-go-step="1"><span>1</span><b>Goals</b></button>
+      <button type="button" class="progress-step active" data-go-step="1"><span>1</span><b>Campus + goals</b></button>
       <div class="progress-line"></div>
       <button type="button" class="progress-step" data-go-step="2"><span>2</span><b>Eating style</b></button>
       <div class="progress-line"></div>
@@ -41,11 +44,17 @@
         <div class="step-heading">
           <span class="step-number">1</span>
           <div>
-            <p class="eyebrow">YOUR TARGET</p>
-            <h2>What are you aiming for?</h2>
-            <p class="muted">The label helps describe your plan. The calories and protein you enter are the numbers the meal helper actually follows.</p>
+            <p class="eyebrow">YOUR CAMPUS + TARGET</p>
+            <h2>Where do you eat, and what are you aiming for?</h2>
+            <p class="muted">Your campus decides which dining system UCPlate uses. Your calorie and protein targets control the meal recommendations.</p>
           </div>
         </div>
+
+        <label class="avoid-foods-card">
+          <span>UC campus</span>
+          <small>Choose the campus whose dining locations and menus UCPlate should use.</small>
+          <select id="campusId" required aria-label="UC campus"></select>
+        </label>
 
         <fieldset class="goal-mode-field">
           <legend class="sr-only">Goal</legend>
@@ -61,7 +70,7 @@
           <label class="big-input-card"><span>Daily protein</span><div class="input-with-unit"><input id="dailyProtein" type="number" min="10" max="300" step="1" inputmode="numeric" placeholder="140" required><b>g</b></div></label>
         </div>
 
-        <div class="goal-explainer"><div class="explainer-icon">✓</div><div><strong>No per-meal math.</strong><p>MealMap turns your daily targets into a starting target for the current meal, then searches the actual UCSC station foods for a close plate.</p></div></div>
+        <div class="goal-explainer"><div class="explainer-icon">✓</div><div><strong>No per-meal math.</strong><p>UCPlate turns your daily targets into a starting target for the current meal, then searches your campus's published station foods for a close plate when nutrition data is available.</p></div></div>
       </section>
 
       <section class="wizard-step" data-step="2" hidden>
@@ -70,15 +79,15 @@
           <legend class="sr-only">Eating style</legend>
           <div class="diet-choice-grid">
             <label class="diet-choice"><input type="radio" name="dietPreference" value="omnivore" checked><span><b>Everything</b><small>Use any menu item that passes your allergy and avoid-food filters.</small></span></label>
-            <label class="diet-choice"><input type="radio" name="dietPreference" value="vegetarian"><span><b>Vegetarian</b><small>Only recommend foods UCSC marks vegetarian or vegan.</small></span></label>
-            <label class="diet-choice"><input type="radio" name="dietPreference" value="vegan"><span><b>Vegan</b><small>Only recommend foods UCSC marks vegan.</small></span></label>
+            <label class="diet-choice"><input type="radio" name="dietPreference" value="vegetarian"><span><b>Vegetarian</b><small>Only recommend foods the campus marks vegetarian or vegan.</small></span></label>
+            <label class="diet-choice"><input type="radio" name="dietPreference" value="vegan"><span><b>Vegan</b><small>Only recommend foods the campus marks vegan.</small></span></label>
           </div>
         </fieldset>
-        <div class="preference-preview"><span class="tag">AUTOMATIC</span><strong>You will not need to set this again on the dining page.</strong><p>When you switch dining halls or meal periods, the recommendations keep using this preference in the background.</p></div>
+        <div class="preference-preview"><span class="tag">AUTOMATIC</span><strong>You will not need to set this again on the dining page.</strong><p>When you switch dining locations or meal periods, recommendations keep using this preference in the background.</p></div>
       </section>
 
       <section class="wizard-step" data-step="3" hidden>
-        <div class="step-heading"><span class="step-number">3</span><div><p class="eyebrow">ALLERGIES & AVOIDS</p><h2>What should never be recommended?</h2><p class="muted">Select anything that applies. Recommendations with a matching UCSC-published allergen label are removed.</p></div></div>
+        <div class="step-heading"><span class="step-number">3</span><div><p class="eyebrow">ALLERGIES & AVOIDS</p><h2>What should never be recommended?</h2><p class="muted">Select anything that applies. Recommendations with a matching campus-published allergen label are removed.</p></div></div>
         <fieldset class="allergy-field">
           <legend>Published allergens to exclude</legend>
           <div class="allergy-chip-grid">
@@ -94,17 +103,17 @@
           </div>
         </fieldset>
         <label class="avoid-foods-card"><span>Foods you personally avoid</span><small>Optional. Separate with commas. Example: pork, mushrooms, mayo</small><textarea id="avoidFoods" rows="3" placeholder="pork, mushrooms"></textarea></label>
-        <div class="allergy-note"><strong>Allergy safety note</strong><p>MealMap can filter using UCSC's published labels, but it cannot verify cross-contact, substitutions, or special preparation. For serious allergies, confirm with dining staff before eating.</p></div>
+        <div class="allergy-note"><strong>Allergy safety note</strong><p>UCPlate can filter using campus-published labels, but it cannot verify cross-contact, substitutions, or special preparation. For serious allergies, confirm with dining staff before eating.</p></div>
       </section>
 
       <p id="goalError" class="form-error" role="alert"></p>
-      <div class="wizard-actions"><button id="wizardBack" class="quiet-action" type="button" hidden>← Back</button><button id="wizardNext" class="primary-action big-save" type="button">Continue →</button><button id="wizardSave" class="primary-action big-save" type="submit" hidden>Save my plan and show dining →</button></div>
+      <div class="wizard-actions"><button id="wizardBack" class="quiet-action" type="button" hidden>← Back</button><button id="wizardNext" class="primary-action big-save" type="button">Continue →</button><button id="wizardSave" class="primary-action big-save" type="submit" hidden>Save my UCPlate profile →</button></div>
     </form>
   </section>
 
   <section class="current-goals current-profile"><div><span class="eyebrow">SAVED PROFILE</span><strong id="currentGoalSummary">No plan saved yet.</strong><p id="currentPreferenceSummary" class="muted">Your settings stay in this browser.</p></div><button id="clearGoals" class="quiet-action" type="button">Clear profile</button></section>
 
-  <footer><span>Your plan is stored only in this browser. MealMap follows the targets you enter and does not calculate a deficit, maintenance level, or surplus for you.</span><div class="links"><a href="./">Dining</a><a href="./calendar.html">My Day</a></div></footer>
+  <footer><span>Your plan is stored only in this browser. UCPlate follows the targets you enter and does not calculate a deficit, maintenance level, or surplus for you. UCPlate is independent and is not affiliated with or endorsed by the University of California.</span><div class="links"><a href="./campus.html">Campus</a><a href="./">Dining</a><a href="./calendar.html">My Day</a></div></footer>
 </main>
 </body>
 </html>
