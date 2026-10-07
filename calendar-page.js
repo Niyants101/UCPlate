@@ -1,8 +1,10 @@
 import {normalizeGoogleEvents,buildMealSuggestions,formatMinutes} from './calendar-context.mjs';
+import {campusById,effectiveCampusId,campusHasLiveMenus,campusDataRoot} from './campuses.mjs';
 
 const PREF='college-bulk-pages-v2';
-const TOKEN_KEY='college-fuel-google-calendar-token';
-const FOCUS_KEY='college-fuel-calendar-focus';
+const TOKEN_KEY='ucplate-google-calendar-token';
+const LEGACY_TOKEN_KEY='college-fuel-google-calendar-token';
+const FOCUS_KEY='ucplate-calendar-focus';
 const TZ='America/Los_Angeles';
 const $=id=>document.getElementById(id);
 const el=(tag,text='',cls='')=>{const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;};
@@ -10,6 +12,10 @@ const el=(tag,text='',cls='')=>{const node=document.createElement(tag);node.text
 let prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF)||'{}');}catch{prefs={};}
 if(!prefs.onboardingComplete)location.replace('./goals.html?setup=1');
+
+const campusId=effectiveCampusId(prefs);
+const campus=campusById(campusId);
+const dataRoot=campusDataRoot(campusId);
 
 let indexData=null;
 let selectedDate=null;
@@ -27,17 +33,20 @@ function dateTitle(date){
 }
 function readToken(){
   try{
-    const token=JSON.parse(sessionStorage.getItem(TOKEN_KEY)||'null');
+    const raw=sessionStorage.getItem(TOKEN_KEY)||sessionStorage.getItem(LEGACY_TOKEN_KEY)||'null';
+    const token=JSON.parse(raw);
     if(!token?.accessToken||Number(token.expiresAt)<=Date.now()+30000)return null;
+    if(!sessionStorage.getItem(TOKEN_KEY))sessionStorage.setItem(TOKEN_KEY,JSON.stringify(token));
     return token;
   }catch{return null;}
 }
 function saveToken(response){
   const expiresIn=Math.max(60,Number(response.expires_in)||3600);
   sessionStorage.setItem(TOKEN_KEY,JSON.stringify({accessToken:response.access_token,expiresAt:Date.now()+expiresIn*1000}));
+  sessionStorage.removeItem(LEGACY_TOKEN_KEY);
 }
-function clearToken(){sessionStorage.removeItem(TOKEN_KEY);}
-function clientId(){return String(window.MEALMAP_GOOGLE_CLIENT_ID||window.COLLEGE_FUEL_GOOGLE_CLIENT_ID||'').trim();}
+function clearToken(){sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(LEGACY_TOKEN_KEY);}
+function clientId(){return String(window.UCPLATE_GOOGLE_CLIENT_ID||window.MEALMAP_GOOGLE_CLIENT_ID||window.COLLEGE_FUEL_GOOGLE_CLIENT_ID||'').trim();}
 
 function setConnectionState(){
   const token=readToken();
@@ -59,7 +68,7 @@ function setConnectionState(){
   if(!configured){
     $('calendarState').textContent='UNAVAILABLE';
     $('calendarConnectTitle').textContent='Google Calendar is temporarily unavailable';
-    $('calendarConnectText').textContent='MealMap is missing its Google connection configuration.';
+    $('calendarConnectText').textContent='UCPlate is missing its Google connection configuration.';
     connect.textContent='Google Calendar unavailable';
     connect.disabled=true;
     return;
@@ -77,7 +86,7 @@ function setConnectionState(){
   if(!googleReady){
     $('calendarState').textContent='LOADING GOOGLE';
     $('calendarConnectTitle').textContent='Preparing Google Calendar';
-    $('calendarConnectText').textContent='MealMap is loading Google sign-in so the account chooser can open immediately.';
+    $('calendarConnectText').textContent='UCPlate is loading Google sign-in so the account chooser can open immediately.';
     connect.textContent='Loading Google…';
     connect.disabled=true;
     return;
@@ -85,7 +94,7 @@ function setConnectionState(){
 
   $('calendarState').textContent='READY TO CONNECT';
   $('calendarConnectTitle').textContent='Connect Google Calendar';
-  $('calendarConnectText').textContent='Choose your Google account and allow read-only Calendar access. MealMap never asks for your Google password.';
+  $('calendarConnectText').textContent='Choose your Google account and allow read-only Calendar access. UCPlate never asks for your Google password.';
   connect.textContent=googleBusy?'Opening Google…':'Connect Google Calendar';
   connect.disabled=googleBusy;
 }
@@ -230,15 +239,15 @@ function renderDay(day){
   }));
   const suggestions=readToken()?buildMealSuggestions({events,locations:usableLocations,preferredLocationId:prefs.hall||null}):[];
   $('windowCount').textContent=readToken()?`${suggestions.length} suggested meal window${suggestions.length===1?'':'s'}`:'Waiting for your day';
-  $('locationLogic').textContent=prefs.hall?'Saved dining choice + serving schedule':'Serving schedule only';
+  $('locationLogic').textContent=prefs.hall?`${campus?.shortName||'Campus'} saved dining choice + serving schedule`:`${campus?.shortName||'Campus'} serving schedule`;
   const root=$('mealWindows');root.replaceChildren();
-  if(!readToken())root.append(el('p','Connect Google Calendar and MealMap will fit meals between your classes.','menu-empty'));
-  else if(!day)root.append(el('p','UCSC has no posted menu snapshot for this date yet, so meal timing is not available.','menu-empty'));
+  if(!readToken())root.append(el('p','Connect Google Calendar and UCPlate will fit meals between your classes.','menu-empty'));
+  else if(!day)root.append(el('p',`${campus?.name||'Your campus'} has no posted menu snapshot for this date yet, so meal timing is not available.`,'menu-empty'));
   else if(!suggestions.length)root.append(el('p','No full meal window of at least 25 minutes fits between your events and the posted serving schedule.','menu-empty'));
   else suggestions.forEach((candidate,index)=>root.append(suggestionCard(candidate,index)));
 
   $('mealWindowNote').textContent=readToken()
-    ? 'Where is based on your saved/last dining choice and serving availability. Distance is not being guessed yet.'
+    ? 'Where is based on your saved dining choice and serving availability. Distance is not being guessed yet.'
     : 'Connect Google Calendar to turn your classes into meal windows.';
 }
 
@@ -249,7 +258,7 @@ async function loadCalendarDay(force=false){
   $('dayTimeline').replaceChildren(el('div','Loading your day…','calendar-loading'));
   try{
     let day=null;
-    if(indexData?.dates?.includes(selectedDate))day=await fetchJSON(`./data/dates/${selectedDate}.json`);
+    if(indexData?.dates?.includes(selectedDate))day=await fetchJSON(`${dataRoot}/dates/${selectedDate}.json`);
     if(readToken())events=await fetchGoogleEvents(selectedDate);else events=[];
     renderDay(day);
   }catch(error){
@@ -259,9 +268,15 @@ async function loadCalendarDay(force=false){
 }
 
 async function init(){
+  if(!campus||!campusHasLiveMenus(campus.id)||!dataRoot){
+    const target=new URL('./campus.html',location.href);
+    if(campus?.id)target.searchParams.set('campus',campus.id);
+    location.replace(target.href);
+    return;
+  }
   selectedDate=campusDate();
   $('calendarDate').value=selectedDate;
-  try{indexData=await fetchJSON('./data/index.json');}catch{indexData={dates:[]};}
+  try{indexData=await fetchJSON(`${dataRoot}/index.json`);}catch{indexData={dates:[]};}
   $('calendarDate').addEventListener('change',()=>loadCalendarDay());
   $('connectGoogle').addEventListener('click',connectGoogle);
   $('disconnectGoogle').addEventListener('click',()=>{clearToken();events=[];oauthError='';setConnectionState();loadCalendarDay();});

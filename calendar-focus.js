@@ -1,7 +1,18 @@
-const FOCUS_KEY='college-fuel-calendar-focus';
+const FOCUS_KEY='ucplate-calendar-focus';
+const LEGACY_FOCUS_KEY='college-fuel-calendar-focus';
 
 function readFocus(){
-  try{return JSON.parse(sessionStorage.getItem(FOCUS_KEY)||'null');}catch{return null;}
+  try{
+    const raw=sessionStorage.getItem(FOCUS_KEY)||sessionStorage.getItem(LEGACY_FOCUS_KEY)||'null';
+    const focus=JSON.parse(raw);
+    if(focus&&!sessionStorage.getItem(FOCUS_KEY))sessionStorage.setItem(FOCUS_KEY,JSON.stringify(focus));
+    return focus;
+  }catch{return null;}
+}
+
+function clearFocus(){
+  sessionStorage.removeItem(FOCUS_KEY);
+  sessionStorage.removeItem(LEGACY_FOCUS_KEY);
 }
 
 function applyFocus(){
@@ -25,7 +36,7 @@ function applyFocus(){
     if(!meal)return false;
     meal.click();
   }
-  sessionStorage.removeItem(FOCUS_KEY);
+  clearFocus();
   setTimeout(()=>document.getElementById('bulkPlanner')?.scrollIntoView({behavior:'smooth',block:'start'}),120);
   return true;
 }

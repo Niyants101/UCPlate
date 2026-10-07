@@ -1,88 +1,126 @@
-# College Bulk Planner
+# UCPlate
 
-A dark mode UCSC dining website with live campus menus plus an optional vegetarian meal planner for College Nine / John R. Lewis. Node 22+; no npm dependencies or API keys are required for the dining dashboard.
+UCPlate is a dark-mode dining and meal-planning website for University of California students. It is designed to combine official campus dining menus, nutrition data, a student's saved goals and dietary preferences, Google Calendar timing, and eventually live location into one answer: when to eat, where to go, and what to get.
+
+UCPlate is an independent student-built service and is not affiliated with or endorsed by the University of California.
+
+## Current rollout
+
+UCPlate now has a campus-aware profile and a shared registry for all ten UC campuses:
+
+* UC Berkeley
+* UC Davis
+* UC Irvine
+* UCLA
+* UC Merced
+* UC Riverside
+* UC San Diego
+* UC San Francisco
+* UC Santa Barbara
+* UC Santa Cruz
+
+UC Santa Cruz is the first live dining adapter. The other campuses are registered in `campuses.mjs` with their own adapter IDs and data roots so their official dining systems can be added without changing the user-facing planner architecture.
+
+A user who selects a campus whose menu adapter is not live is never shown another campus's food by mistake. UCPlate saves the campus selection and routes the user to the campus rollout page until that adapter is available.
+
+## Multi-campus architecture
+
+The browser works against one normalized campus model:
+
+```text
+Campus
+  -> dining locations
+      -> serving schedules
+      -> meal periods
+          -> stations
+              -> foods
+                  -> serving size
+                  -> calories / protein when published
+                  -> dietary labels
+                  -> allergens
+                  -> exact official nutrition source
+```
+
+`campuses.mjs` is the registry for campus IDs, display names, adapter IDs, rollout status, and static data roots. The UCSC adapter currently writes to `./data`; future campuses are reserved under `./data/campuses/<campus-id>`.
+
+The recommendation and calendar layers are intentionally campus-agnostic. New campus importers should normalize official dining data into the same location / meal / food structure rather than adding campus-specific logic to the UI.
+
+## Hosted website
+
+The GitHub Pages version is serverless. `.github/workflows/pages.yml` refreshes dining snapshots from the currently implemented campus importer and commits generated static JSON. The browser then loads the selected campus's data root.
+
+For UCSC, the current importer:
+
+* Uses America/Los_Angeles time.
+* Discovers dates UCSC has actually posted.
+* Discovers FoodPro locations instead of limiting the site to a hardcoded dining-hall list.
+* Reads all published meal periods and station/category names.
+* Fetches exact nutrition labels when available.
+* Never invents missing calories, protein, allergens, or serving sizes.
+* Treats Continuous Dining as limited service instead of assuming the full Lunch or Dinner menu is available.
+
+## Personal profile
+
+The first-time setup stores the following in browser local storage:
+
+* UC campus
+* Cut / maintain / gain label
+* Daily calorie target
+* Daily protein target
+* Omnivore / vegetarian / vegan preference
+* Published allergens to exclude
+* Custom foods to avoid
+
+Existing profiles created before campus selection was added are migrated to UC Santa Cruz because the previous website was UCSC-only.
+
+## Plate recommendations
+
+UCPlate groups foods by dining station and searches coherent combinations rather than treating the menu as a random macro pool. Recommendations only use foods with published numeric nutrition data and apply the user's diet, allergen, and custom avoid-food filters.
+
+Allergy filtering is based only on campus-published information. UCPlate cannot verify cross-contact, substitutions, or special preparation.
+
+## Google Calendar
+
+`My Day` uses Google Identity Services and the Google Calendar API with the read-only scope:
+
+```text
+https://www.googleapis.com/auth/calendar.events.readonly
+```
+
+The browser receives a short-lived access token and stores it in `sessionStorage`. UCPlate does not request permission to create, edit, or delete events.
+
+Calendar events are normalized into busy periods and combined with the selected campus's serving schedule to find useful meal windows between classes and other events.
 
 ## Run locally
+
+Node 22+ is recommended.
 
 ```sh
 node server.mjs
 ```
 
-Open http://127.0.0.1:3210. Run tests with `node --test`.
+Open `http://127.0.0.1:3210` and run tests with:
 
-## GitHub Pages
+```sh
+node --test
+```
 
-The repository also includes a serverless GitHub Pages version of the dining dashboard.
+The local Node implementation contains older project functionality in addition to the hosted static website. The root HTML / JavaScript files are the current GitHub Pages user experience.
 
-`.github/workflows/pages.yml` rebuilds and deploys the site on pushes to `main`, on manual runs, and twice each hour. The build script reads UCSC FoodPro on the GitHub Actions runner, writes a static snapshot of today's and all currently posted future menus, and publishes that snapshot to Pages. The browser still determines Santa Cruz time and the current regular serving period, so users do not need to select a date or meal before seeing useful results.
+## Adding another UC campus
 
-The hosted version intentionally does not depend on the local Node HTTP server. Because GitHub Pages cannot run that server, the Pages build prefetches the short menu data instead. The local development version can still load per-item nutrition labels and the personal planner features that use server routes.
+A campus rollout should follow this order:
 
-One-time repository setup: Settings → Pages → Build and deployment → Source → GitHub Actions. GitHub Pages is available for public repositories on GitHub Free and for private repositories on plans that support private-repository Pages.
+1. Add or confirm the campus entry in `campuses.mjs`.
+2. Build an importer for the campus's official dining/menu source.
+3. Normalize locations, meals, stations, foods, nutrition, allergens, and source links into the UCPlate model.
+4. Write snapshots under that campus's configured `dataRoot`.
+5. Add verified serving schedules or mark hours unknown rather than guessing them.
+6. Add importer and normalization tests.
+7. Change the campus registry `menuStatus` from `planned` to `live` only after its data is validated.
 
-## Dining dashboard
+This keeps UCSC-specific parsing out of the recommendation, profile, and calendar interfaces and lets UCPlate scale campus by campus.
 
-The first screen is designed to require almost no input.
+## Security and data handling
 
-* Uses America/Los_Angeles time automatically.
-* Defaults to today and discovers the future dates UCSC has actually posted.
-* Discovers UCSC FoodPro dining locations from the live location page instead of limiting the website to a hardcoded five hall list.
-* Reads every location's posted meal periods and short menu for the selected date.
-* Prioritizes locations that are currently serving food.
-* Automatically selects the meal that matches the current regular serving period when that period has a full menu.
-* Treats Continuous Dining as limited service and does not claim the complete Lunch or Dinner menu is available during that window.
-* Shows every published meal period as tabs, including Breakfast, Brunch, Lunch, Dinner, Late Night, or other names UCSC publishes.
-* Groups full menus by UCSC station/category.
-* Keeps food search, vegetarian filtering, manual location selection, and manual date selection available as optional controls.
-* Uses a dark interface by default and adapts to desktop and mobile screens.
-
-### Regular serving schedules built in
-
-Regular schedules are encoded for the five dining halls from the schedules supplied for this project:
-
-* College Nine / John R. Lewis
-* Cowell / Stevenson
-* Crown / Merrill
-* Porter / Kresge
-* Rachel Carson / Oakes
-
-Cafes, markets, and other discovered FoodPro locations still show their live menus. Their open/closed status is not guessed until verified serving hours are added.
-
-Regular schedule data is only a convenience. Special closures, holiday hours, substitutions, and real time changes can differ from the normal schedule.
-
-## Menu integrity
-
-The importer establishes a FoodPro session before requests and supplies the missing InCommon ECC OV SSL CA 3 intermediate. The bundled public certificate was obtained from its issuer URL (`http://crt.sectigo.com/InCommonECCOVSSLCA3.crt`) and its signature is verified against Node's trusted roots at startup. TLS and hostname verification stay enabled.
-
-Menu responses and nutrition labels are cached in memory for 10 minutes. A requested date must match the date UCSC returns. No stale menu is substituted when a date fails. Individual nutrition label failures produce partial menus with unavailable values instead of invented nutrition.
-
-## Personal planner
-
-The local Node version keeps the deterministic C9 vegetarian planner. It can:
-
-* Plan C9 main meals around busy blocks, serving windows, and a travel buffer.
-* Filter verified date specific vegetarian foods, egg/dairy preferences, and named allergens.
-* Search combinations of one or two entrée servings and up to two distinct sides.
-* Track planned versus eaten portions during the current browser session.
-* Import read only Google Calendar availability.
-* Export the plan as JSON for ALVIS.
-
-The personal planner is still C9 focused. The campus wide live dining dashboard is separate and works across the FoodPro locations UCSC publishes.
-
-## Google Calendar
-
-The connected ChatGPT Calendar tool belongs to the chat, not this standalone website. A local `data/calendar.json` snapshot can be populated by an authorized assistant and is ignored by Git.
-
-For independent live reads:
-
-1. Enable Calendar API in your Google Cloud project and create a Desktop app OAuth client.
-2. Set `GOOGLE_CLIENT_ID` and, if supplied, `GOOGLE_CLIENT_SECRET` in your local environment.
-3. Optionally set `GOOGLE_CALENDAR_IDS` to a comma separated list of calendar IDs. The default is `primary`.
-4. Start the server and click Connect Google. The loopback callback is `http://127.0.0.1:3210/auth/google/callback` unless PORT is changed.
-5. Import availability for the selected date.
-
-Access tokens live in memory only and expire. No event writes, persistent refresh token, or background sync are used.
-
-## Security
-
-The development server binds to localhost only. Host and mutation origin checks remain enabled. No third party browser scripts are loaded. Menu names are rendered as text. Calendar tokens stay server side. Personal preferences stay in browser local storage.
+Personal plan settings stay in browser local storage. Google Calendar access tokens stay in browser session storage and expire. Menu names are rendered as text. Missing dining or nutrition information is not fabricated.

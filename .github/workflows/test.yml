@@ -25,3 +25,8 @@ jobs:
           node --check app.js
           node --check goals.js
           node --check plate-planner.mjs
+          node --check calendar-page.js
+          node --check calendar-focus.js
+          node --check campus-ui.js
+          node --check campus-page.js
+          node --check campuses.mjs
