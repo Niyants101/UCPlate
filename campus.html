@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b09">
+  <title>Campus · UCPlate</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./ux.css">
+  <link rel="stylesheet" href="./campus.css">
+  <script type="module" src="./campus-page.js"></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="./">UCPLATE</a>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a class="campus-nav active" href="./campus.html">Campus</a>
+    <a href="./">Dining</a>
+    <a href="./goals.html">My Plan</a>
+    <a href="./calendar.html">My Day</a>
+  </nav>
+</header>
+
+<main class="campus-page">
+  <section class="campus-hero">
+    <div>
+      <p class="eyebrow">ALL UC CAMPUSES</p>
+      <h1>Pick your campus.<br><em>UCPlate handles the rest.</em></h1>
+      <p class="intro">UCPlate is being built as one dining layer for the entire University of California system. Your campus choice controls which dining locations, menus, hours, and meal recommendations UCPlate uses.</p>
+    </div>
+    <aside class="campus-summary">
+      <span class="tag">CURRENT CAMPUS</span>
+      <strong id="currentCampusName">Choose a campus</strong>
+      <p id="currentCampusStatus">Your campus is saved with your plan in this browser.</p>
+    </aside>
+  </section>
+
+  <section class="campus-grid-section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">UNIVERSITY OF CALIFORNIA</p>
+        <h2>10 campuses, one UCPlate profile</h2>
+        <p class="muted">UC Santa Cruz is the first live dining connector. The other campus adapters are now part of the codebase and will plug into the same menu, calendar, nutrition, and recommendation system as they are added.</p>
+      </div>
+    </div>
+    <div id="campusGrid" class="campus-grid" aria-live="polite"></div>
+    <div id="campusNext" class="campus-next" hidden>
+      <div>
+        <strong id="campusNextTitle">Campus selected</strong>
+        <p id="campusNextText"></p>
+      </div>
+      <a id="campusNextAction" class="button-link" href="./">Continue</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>UCPlate is an independent student-built service and is not affiliated with or endorsed by the University of California.</span>
+    <div class="links"><a href="./goals.html">My Plan</a><a href="./calendar.html">My Day</a></div>
+  </footer>
+</main>
+</body>
+</html>
