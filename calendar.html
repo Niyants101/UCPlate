@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b09">
+  <title>My Day · College Fuel</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./ux.css">
+  <link rel="stylesheet" href="./calendar.css">
+  <script src="./calendar-config.js"></script>
+  <script type="module" src="./calendar-page.js"></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="./">COLLEGE FUEL</a>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="./">Dining</a>
+    <a href="./goals.html">My Plan</a>
+    <a class="active" href="./calendar.html">My Day</a>
+  </nav>
+</header>
+
+<main class="calendar-page">
+  <section class="calendar-hero">
+    <div>
+      <p class="eyebrow">MEALS AROUND YOUR DAY</p>
+      <h1>Know <em>when</em> to eat,<br>not just what.</h1>
+      <p class="intro">Connect Google Calendar and College Fuel will look at your classes, UCSC serving times, and your saved meal plan to suggest useful meal windows like “Lunch after CSE 20” or “Dinner after lab.”</p>
+    </div>
+    <aside class="calendar-connect-card">
+      <span id="calendarState" class="tag">NOT CONNECTED</span>
+      <strong id="calendarConnectTitle">Connect Google Calendar</strong>
+      <p id="calendarConnectText">Your events stay in this browser session. College Fuel only requests read-only calendar access.</p>
+      <div class="calendar-connect-actions">
+        <button id="connectGoogle" class="primary-action" type="button">Connect Google Calendar</button>
+        <button id="disconnectGoogle" class="quiet-action" type="button" hidden>Disconnect</button>
+      </div>
+    </aside>
+  </section>
+
+  <section id="calendarSetupNotice" class="calendar-setup" hidden>
+    <div>
+      <p class="eyebrow">ONE-TIME SITE OWNER SETUP</p>
+      <h2>Google OAuth still needs a client ID</h2>
+      <p>The public site can connect directly to Google Calendar, but Google requires a Web OAuth client for this domain first. The client ID is public and safe to use in a browser.</p>
+    </div>
+    <details>
+      <summary>Developer setup</summary>
+      <ol>
+        <li>Enable the Google Calendar API in Google Cloud.</li>
+        <li>Create an OAuth 2.0 Client ID for a Web application.</li>
+        <li>Add <code>https://niyants101.github.io</code> as an authorized JavaScript origin.</li>
+        <li>Paste the client ID below to test it in this browser. After it works, add it to <code>calendar-config.js</code> so every user gets the Connect button.</li>
+      </ol>
+      <label>Google OAuth Client ID<input id="developerClientId" type="text" autocomplete="off" placeholder="1234...apps.googleusercontent.com"></label>
+      <button id="saveDeveloperClientId" type="button">Save locally for testing</button>
+    </details>
+  </section>
+
+  <section class="calendar-dashboard">
+    <div class="calendar-toolbar">
+      <div>
+        <p class="eyebrow">YOUR DAY</p>
+        <h2 id="calendarDateTitle">Today</h2>
+      </div>
+      <label class="calendar-date-control">Date<input id="calendarDate" type="date"></label>
+    </div>
+
+    <div class="calendar-summary-grid">
+      <article class="calendar-summary-card">
+        <span>Calendar</span>
+        <strong id="eventCount">Connect Google to load classes</strong>
+      </article>
+      <article class="calendar-summary-card">
+        <span>Meal windows</span>
+        <strong id="windowCount">Waiting for your day</strong>
+      </article>
+      <article class="calendar-summary-card">
+        <span>Where</span>
+        <strong id="locationLogic">Saved dining choice + serving schedule</strong>
+      </article>
+    </div>
+
+    <div class="calendar-columns">
+      <section class="day-timeline-panel">
+        <div class="panel-head">
+          <div><p class="eyebrow">TIMELINE</p><h2>Classes and events</h2></div>
+          <button id="refreshCalendar" type="button">Refresh ↻</button>
+        </div>
+        <div id="dayTimeline" class="day-timeline">
+          <p class="menu-empty">Connect Google Calendar to build your day.</p>
+        </div>
+      </section>
+
+      <section class="meal-window-panel">
+        <div class="panel-head">
+          <div><p class="eyebrow">BEST WINDOWS</p><h2>When to eat</h2></div>
+        </div>
+        <p id="mealWindowNote" class="muted">Once your calendar is connected, these suggestions will fit between your events and the dining hall serving schedule.</p>
+        <div id="mealWindows" class="meal-windows">
+          <p class="menu-empty">No calendar data yet.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="future-context-card">
+    <div>
+      <p class="eyebrow">NEXT LAYER</p>
+      <h2>Location will make “where” smarter</h2>
+      <p>Right now the page prefers your saved/last dining hall and checks whether the meal is being served. A future location permission can rank halls by walking time from your current class or position. College Fuel does not guess your location today.</p>
+    </div>
+    <div class="context-status-list">
+      <span><b>✓</b> Calendar timing</span>
+      <span><b>✓</b> UCSC serving schedule</span>
+      <span><b>✓</b> Saved nutrition profile</span>
+      <span class="pending"><b>○</b> Live location / walking time</span>
+      <span class="pending"><b>○</b> Eco Box availability</span>
+    </div>
+  </section>
+
+  <footer>
+    <span>Calendar access is read-only. Event data is used in your browser to find meal windows and is not committed to GitHub.</span>
+    <a href="./">Back to dining</a>
+  </footer>
+</main>
+</body>
+</html>
