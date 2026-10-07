@@ -84,7 +84,7 @@ function prefill(){
 }
 
 if(setupMode||!prefs.onboardingComplete){
-  $('setupEyebrow').textContent='WELCOME TO COLLEGE FUEL';
+  $('setupEyebrow').textContent='WELCOME TO MEALMAP';
   $('setupTitle').innerHTML='Three quick steps.<br><em>Then you are done.</em>';
   $('setupIntro').textContent='Set your goals, eating style, and food safety preferences once. The dining page will use them automatically from then on.';
 }
