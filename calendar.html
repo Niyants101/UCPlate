@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b09">
-  <title>My Day · College Fuel</title>
+  <title>My Day · MealMap</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./ux.css">
   <link rel="stylesheet" href="./calendar.css">
   <script src="./calendar-config.js"></script>
+  <script id="googleIdentityScript" src="https://accounts.google.com/gsi/client" defer></script>
   <script type="module" src="./calendar-page.js"></script>
 </head>
 <body>
 <header>
-  <a class="brand" href="./">COLLEGE FUEL</a>
+  <a class="brand" href="./">MEALMAP</a>
   <nav class="site-nav" aria-label="Main navigation">
     <a href="./">Dining</a>
     <a href="./goals.html">My Plan</a>
@@ -27,14 +28,14 @@
     <div>
       <p class="eyebrow">MEALS AROUND YOUR DAY</p>
       <h1>Know <em>when</em> to eat,<br>not just what.</h1>
-      <p class="intro">Connect Google Calendar and College Fuel will look at your classes, UCSC serving times, and your saved meal plan to suggest useful meal windows like “Lunch after CSE 20” or “Dinner after lab.”</p>
+      <p class="intro">Connect Google Calendar and MealMap will look at your classes, UCSC serving times, and your saved meal plan to suggest useful meal windows like “Lunch after CSE 20” or “Dinner after lab.”</p>
     </div>
     <aside class="calendar-connect-card">
-      <span id="calendarState" class="tag">NOT CONNECTED</span>
-      <strong id="calendarConnectTitle">Connect Google Calendar</strong>
-      <p id="calendarConnectText">Your events stay in this browser session. College Fuel only requests read-only calendar access.</p>
+      <span id="calendarState" class="tag">LOADING GOOGLE</span>
+      <strong id="calendarConnectTitle">Preparing Google Calendar</strong>
+      <p id="calendarConnectText">MealMap is loading Google's secure sign-in so the connection opens immediately when you click.</p>
       <div class="calendar-connect-actions">
-        <button id="connectGoogle" class="primary-action" type="button">Connect Google Calendar</button>
+        <button id="connectGoogle" class="primary-action" type="button" disabled>Loading Google…</button>
         <button id="disconnectGoogle" class="quiet-action" type="button" hidden>Disconnect</button>
       </div>
     </aside>
@@ -91,7 +92,7 @@
     <div>
       <p class="eyebrow">NEXT LAYER</p>
       <h2>Location will make “where” smarter</h2>
-      <p>Right now the page prefers your saved/last dining hall and checks whether the meal is being served. A future location permission can rank halls by walking time from your current class or position. College Fuel does not guess your location today.</p>
+      <p>Right now the page prefers your saved/last dining hall and checks whether the meal is being served. A future location permission can rank halls by walking time from your current class or position. MealMap does not guess your location today.</p>
     </div>
     <div class="context-status-list">
       <span><b>✓</b> Calendar timing</span>
