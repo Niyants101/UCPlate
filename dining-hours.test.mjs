@@ -10,4 +10,6 @@ test('Crown and Kresge are closed on regular weekend schedule',()=>{assert.deepE
 test('Kresge weekday dinner ends at 7 PM',()=>assert.equal(getDaySchedule('2026-10-05','25').at(-1).end,'19:00'));
 test('continuous dining is explicitly limited',()=>{const s=getServingStatus('2026-10-06','40',at('2026-10-06T18:10:00Z'));assert.equal(s.state,'limited');assert.equal(s.label,'Continuous Dining');});
 test('unknown cafe hours are not guessed',()=>assert.equal(getServingStatus('2026-10-02','23').state,'unknown'));
+test('UCSD 64 Degrees uses its official weekly hours',()=>{assert.deepEqual(getDaySchedule('2026-10-08','ucsd-64-degrees'),[{name:'Open',start:'07:00',end:'23:00',limited:false}]);assert.deepEqual(getDaySchedule('2026-10-10','ucsd-64-degrees'),[{name:'Open',start:'09:00',end:'21:00',limited:false}]);});
+test('UCSD overnight markets preserve early-morning service',()=>{const schedule=getDaySchedule('2026-10-08','ucsd-goodys');assert.equal(schedule[0].start,'00:00');assert.equal(schedule[0].end,'02:00');assert.equal(schedule[1].start,'07:00');});
 test('clock formatting is readable',()=>{assert.equal(formatClock('08:00'),'8 AM');assert.equal(formatClock('11:30'),'11:30 AM');assert.equal(formatClock('20:00'),'8 PM');});
