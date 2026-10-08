@@ -17,11 +17,12 @@ test('existing pre-campus profiles migrate to UCSC',()=>{
   assert.equal(effectiveCampusId({onboardingComplete:true,campusId:'ucsd'}),'ucsd');
 });
 
-test('validated UCSC and UCSD campus adapters are live',()=>{
+test('validated UCSC, UCSD, and UC Berkeley campus adapters are live',()=>{
   assert.equal(campusHasLiveMenus('ucsc'),true);
   assert.equal(campusHasLiveMenus('ucsd'),true);
-  assert.equal(campusHasLiveMenus('ucb'),false);
+  assert.equal(campusHasLiveMenus('ucb'),true);
   assert.equal(campusDataRoot('ucsc'),'./data');
   assert.equal(campusDataRoot('ucsd'),'./data/campuses/ucsd');
+  assert.equal(campusDataRoot('ucb'),'./data/campuses/ucb');
   assert.equal(campusById('ucla').name,'UCLA');
 });
