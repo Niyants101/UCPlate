@@ -30,5 +30,7 @@ jobs:
           node --check campus-ui.js
           node --check campus-page.js
           node --check campuses.mjs
-      - name: Probe UCSD dining markup
-        run: node scripts/probe-ucsd.mjs
+          node --check ucsd-menus.mjs
+          node --check scripts/build-ucsd-pages.mjs
+      - name: Build UCSD snapshot smoke test
+        run: node scripts/build-ucsd-pages.mjs
