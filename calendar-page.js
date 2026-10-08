@@ -235,7 +235,7 @@ function renderDay(day){
 
   const usableLocations=(day?.locations||[]).filter(location=>location.status==='live'&&Array.isArray(location.schedule)).map(location=>({
     ...location,
-    schedule:location.schedule.filter(period=>period.limited||(location.meals||[]).some(meal=>meal.name.toLowerCase()===period.name.toLowerCase()))
+    schedule:location.schedule.filter(period=>period.limited||/^open$/i.test(period.name)||(location.meals||[]).some(meal=>meal.name.toLowerCase()===period.name.toLowerCase()))
   }));
   const suggestions=readToken()?buildMealSuggestions({events,locations:usableLocations,preferredLocationId:prefs.hall||null}):[];
   $('windowCount').textContent=readToken()?`${suggestions.length} suggested meal window${suggestions.length===1?'':'s'}`:'Waiting for your day';
