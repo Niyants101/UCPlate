@@ -33,8 +33,12 @@ jobs:
           node --check ucsd-menus.mjs
           node --check ucb-menus.mjs
           node --check ucd-menus.mjs
+          node --check uci-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
           node --check scripts/build-ucd-pages.mjs
+          node --check scripts/build-uci-pages.mjs
       - name: Smoke build UC Davis snapshot
         run: node scripts/build-ucd-pages.mjs
+      - name: Smoke build UC Irvine snapshot
+        run: node scripts/build-uci-pages.mjs
