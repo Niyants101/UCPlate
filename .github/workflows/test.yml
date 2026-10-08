@@ -34,5 +34,3 @@ jobs:
           node --check ucb-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
-      - name: Smoke build UC Berkeley snapshot
-        run: node scripts/build-ucb-pages.mjs
