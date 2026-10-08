@@ -32,3 +32,5 @@ jobs:
           node --check campuses.mjs
           node --check ucsd-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
+      - name: Probe UC Berkeley dining source
+        run: node scripts/probe-ucb.mjs
