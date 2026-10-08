@@ -1,6 +1,6 @@
 export const UC_CAMPUSES = [
   {id:'ucb',name:'UC Berkeley',shortName:'Berkeley',city:'Berkeley',menuStatus:'live',adapter:'berkeley-dining',dataRoot:'./data/campuses/ucb'},
-  {id:'ucd',name:'UC Davis',shortName:'Davis',city:'Davis',menuStatus:'planned',adapter:'davis-dining',dataRoot:'./data/campuses/ucd'},
+  {id:'ucd',name:'UC Davis',shortName:'Davis',city:'Davis',menuStatus:'live',adapter:'ucd-residential-dining',dataRoot:'./data/campuses/ucd'},
   {id:'uci',name:'UC Irvine',shortName:'Irvine',city:'Irvine',menuStatus:'planned',adapter:'uci-dining',dataRoot:'./data/campuses/uci'},
   {id:'ucla',name:'UCLA',shortName:'UCLA',city:'Los Angeles',menuStatus:'planned',adapter:'ucla-dining',dataRoot:'./data/campuses/ucla'},
   {id:'ucm',name:'UC Merced',shortName:'Merced',city:'Merced',menuStatus:'planned',adapter:'merced-dining',dataRoot:'./data/campuses/ucm'},
