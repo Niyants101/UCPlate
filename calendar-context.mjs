@@ -74,10 +74,54 @@ function canonicalMeal(name){
   const text=String(name||'').toLowerCase();
   if(text.includes('brunch'))return 'Brunch';
   if(text.includes('breakfast'))return 'Breakfast';
-  if(text.includes('lunch'))return 'Lunch';
   if(text.includes('late'))return 'Late Night';
+  if(text.includes('lunch'))return 'Lunch';
   if(text.includes('dinner'))return 'Dinner';
   return name||'Meal';
+}
+
+const PLANNING_WINDOWS={
+  Breakfast:{start:'07:00',end:'11:00'},
+  Brunch:{start:'09:00',end:'14:00'},
+  Lunch:{start:'11:00',end:'16:00'},
+  Dinner:{start:'16:00',end:'21:00'},
+  'Late Night':{start:'20:00',end:'23:59'}
+};
+const STANDARD_MEALS=new Set(Object.keys(PLANNING_WINDOWS));
+
+function publishedMealNames(location){
+  const names=[];
+  for(const raw of location?.meals||[]){
+    const text=String(typeof raw==='string'?raw:raw?.name||'').toLowerCase();
+    if(!text)continue;
+    if(text.includes('brunch'))names.push('Brunch');
+    else if(text.includes('breakfast'))names.push('Breakfast');
+    if(text.includes('lunch'))names.push('Lunch');
+    if(text.includes('dinner'))names.push('Dinner');
+    if(text.includes('late'))names.push('Late Night');
+  }
+  return [...new Set(names)];
+}
+
+function servingSegments(location,serving){
+  const servingStart=toMinutes(serving.start),servingEnd=toMinutes(serving.end);
+  if(!Number.isFinite(servingStart)||!Number.isFinite(servingEnd))return [];
+  if(!/^open$/i.test(String(serving.name||'').trim())){
+    const meal=canonicalMeal(serving.name);
+    return [{meal,servingName:serving.name,start:servingStart,end:servingEnd}];
+  }
+
+  let names=publishedMealNames(location);
+  if(!names.length)names=['Breakfast','Lunch','Dinner','Late Night'];
+  const segments=[];
+  for(const meal of names){
+    if(!STANDARD_MEALS.has(meal))continue;
+    const planning=PLANNING_WINDOWS[meal];
+    const start=Math.max(servingStart,toMinutes(planning.start));
+    const end=Math.min(servingEnd,toMinutes(planning.end));
+    if(end>start)segments.push({meal,servingName:meal,start,end,scheduleName:serving.name});
+  }
+  return segments;
 }
 
 function previousEvent(events,start){
@@ -94,27 +138,28 @@ export function buildMealSuggestions({events=[],locations=[],preferredLocationId
     if(!Array.isArray(location.schedule))continue;
     for(const serving of location.schedule){
       if(serving.limited||/continuous/i.test(serving.name))continue;
-      const servingStart=toMinutes(serving.start),servingEnd=toMinutes(serving.end);
-      if(!Number.isFinite(servingStart)||!Number.isFinite(servingEnd))continue;
-      for(const gap of free){
-        const start=Math.max(gap.start,servingStart),end=Math.min(gap.end,servingEnd);
-        if(end-start<minWindowMinutes)continue;
-        const previous=previousEvent(events,start),next=nextEvent(events,end);
-        const duration=end-start;
-        let score=0;
-        if(location.id===preferredLocationId)score-=40;
-        score-=Math.min(duration,75)/15;
-        if(previous)score+=Math.min(90,Math.max(0,start-previous.end))/30;
-        if(next)score+=Math.min(90,Math.max(0,next.start-end))/60;
-        candidates.push({
-          meal:canonicalMeal(serving.name),
-          servingName:serving.name,
-          locationId:location.id,
-          locationName:location.name,
-          start,end,duration,previous,next,score,
-          distanceMinutes:null,
-          distanceStatus:'not-connected'
-        });
+      for(const segment of servingSegments(location,serving)){
+        for(const gap of free){
+          const start=Math.max(gap.start,segment.start),end=Math.min(gap.end,segment.end);
+          if(end-start<minWindowMinutes)continue;
+          const previous=previousEvent(events,start),next=nextEvent(events,end);
+          const duration=end-start;
+          let score=0;
+          if(location.id===preferredLocationId)score-=40;
+          score-=Math.min(duration,75)/15;
+          if(previous)score+=Math.min(90,Math.max(0,start-previous.end))/30;
+          if(next)score+=Math.min(90,Math.max(0,next.start-end))/60;
+          candidates.push({
+            meal:segment.meal,
+            servingName:segment.servingName,
+            scheduleName:segment.scheduleName||serving.name,
+            locationId:location.id,
+            locationName:location.name,
+            start,end,duration,previous,next,score,
+            distanceMinutes:null,
+            distanceStatus:'not-connected'
+          });
+        }
       }
     }
   }
