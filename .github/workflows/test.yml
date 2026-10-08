@@ -31,4 +31,6 @@ jobs:
           node --check campus-page.js
           node --check campuses.mjs
           node --check ucsd-menus.mjs
+          node --check ucb-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
+          node --check scripts/build-ucb-pages.mjs
