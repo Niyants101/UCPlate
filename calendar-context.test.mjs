@@ -26,6 +26,31 @@ test('continuous dining is not treated as a full meal suggestion',()=>{
   assert.deepEqual(suggestions.map(x=>x.meal),['Dinner']);
 });
 
+test('generic open hours become the meal periods actually published by the location',()=>{
+  const locations=[{
+    id:'ucsd-64-degrees',
+    name:'64 Degrees',
+    schedule:[{name:'Open',start:'07:00',end:'23:00'}],
+    meals:[{name:'Breakfast'},{name:'Lunch'}]
+  }];
+  const suggestions=buildMealSuggestions({events:[],locations});
+  assert.deepEqual(suggestions.map(x=>x.meal),['Breakfast','Lunch']);
+  assert.equal(suggestions[0].servingName,'Breakfast');
+  assert.equal(suggestions[1].servingName,'Lunch');
+  assert.equal(suggestions[0].scheduleName,'Open');
+});
+
+test('combined published UCSD meal labels split into useful planning windows',()=>{
+  const locations=[{
+    id:'ucsd-test',
+    name:'UCSD Test',
+    schedule:[{name:'Open',start:'08:00',end:'21:00'}],
+    meals:[{name:'Lunch / Dinner'}]
+  }];
+  const suggestions=buildMealSuggestions({events:[],locations});
+  assert.deepEqual(suggestions.map(x=>x.meal),['Lunch','Dinner']);
+});
+
 test('time formatting is readable',()=>{
   assert.equal(formatMinutes(11*60+30),'11:30 AM');
   assert.equal(formatMinutes(17*60),'5 PM');
