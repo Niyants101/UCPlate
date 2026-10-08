@@ -32,7 +32,9 @@ jobs:
           node --check campuses.mjs
           node --check ucsd-menus.mjs
           node --check ucb-menus.mjs
+          node --check ucd-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
-      - name: Probe UC Davis dining source
-        run: node scripts/probe-ucd.mjs
+          node --check scripts/build-ucd-pages.mjs
+      - name: Smoke build UC Davis snapshot
+        run: node scripts/build-ucd-pages.mjs
