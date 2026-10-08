@@ -40,6 +40,9 @@ jobs:
       - name: Refresh UC Davis menu snapshot
         run: node scripts/build-ucd-pages.mjs
 
+      - name: Refresh UC Irvine menu snapshot
+        run: node scripts/build-uci-pages.mjs
+
       - name: Commit updated menu data
         run: |
           git config user.name "github-actions[bot]"
