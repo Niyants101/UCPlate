@@ -6,4 +6,6 @@ data/*
 !data/dates/**
 !data/details/
 !data/details/**
+!data/campuses/
+!data/campuses/**
 *.log
