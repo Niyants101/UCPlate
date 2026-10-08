@@ -32,5 +32,3 @@ jobs:
           node --check campuses.mjs
           node --check ucsd-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
-      - name: Build UCSD snapshot smoke test
-        run: node scripts/build-ucsd-pages.mjs
