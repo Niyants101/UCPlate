@@ -98,7 +98,6 @@ function textField(body,label){
 function parseItem(block,{date,hallId,period,section,source}){
   const name=textOnly(block.body.match(/<a\b[^>]*class=["'][^"']*\bnutrition-panel\b[^"']*["'][^>]*>([\s\S]*?)<\/a>/i)?.[1]||'');
   if(!name)return null;
-  const combined=`${block.open} ${block.body}`;
   const hasVegan=/\bisVegan\b/i.test(block.open)||/<img\b[^>]*alt=["']Vegan["']/i.test(block.body);
   const hasVegetarian=/\bisVegetarian\b/i.test(block.open)||/<img\b[^>]*alt=["']Vegetarian["']/i.test(block.body);
   const diet=hasVegan?'vegan':hasVegetarian?'vegetarian':'unknown';
@@ -106,13 +105,13 @@ function parseItem(block,{date,hallId,period,section,source}){
   const allergens=normalizeContains(contains);
   const serving=textField(block.body,'Serving Size');
   const calories=numberField(block.body,'Calories');
-  const protein=numberField(block.body,'Protein \\(g\\)');
+  const protein=numberField(block.body,'Protein (g)');
   const available=Number.isFinite(calories)&&Number.isFinite(protein);
   const description='';
   return {name,section,category:section,diet,allergens,date,hallId,period,source,description,calories:available?calories:null,protein:available?protein:null,serving:serving||null,nutritionSource:available?source:null,nutritionStatus:available?'available':'unavailable'};
 }
 function parseZone(zone,{date,hallId,period,source}){
-  const section=`${textOnly(zone.open.match(/<h3\b[^>]*>([\s\S]*?)<\/h3>/i)?.[1]||'Menu')}`;
+  const section=textOnly(zone.open.match(/<h3\b[^>]*>([\s\S]*?)<\/h3>/i)?.[1]||'Menu');
   const items=[];
   for(const panel of chunks(zone.body,/<div\b[^>]*class=["'][^"']*\bpanel\b[^"']*\bpanel-default\b[^"']*["'][^>]*>/gi)){
     const item=parseItem(panel,{date,hallId,period,section,source});if(item)items.push(item);
