@@ -34,3 +34,5 @@ jobs:
           node --check ucb-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
+      - name: Probe UC Davis dining source
+        run: node scripts/probe-ucd.mjs
