@@ -31,6 +31,9 @@ jobs:
       - name: Refresh UC Santa Cruz menu snapshot
         run: node scripts/build-pages.mjs
 
+      - name: Refresh UC San Diego menu snapshot
+        run: node scripts/build-ucsd-pages.mjs
+
       - name: Commit updated menu data
         run: |
           git config user.name "github-actions[bot]"
@@ -40,5 +43,5 @@ jobs:
             echo "Menu snapshot unchanged."
             exit 0
           fi
-          git commit -m "Refresh UC Santa Cruz dining snapshot [skip ci]"
+          git commit -m "Refresh UCPlate dining snapshots [skip ci]"
           git push
