@@ -5,6 +5,18 @@ const weekdayLong=[
 ];
 const weekdayNoLate=weekdayLong.slice(0,5);
 const weekendBase=[w('Brunch','09:00','14:00'),w('Continuous Dining','14:00','17:00',true),w('Dinner','17:00','20:00')];
+const open=(start,end)=>w('Open',start,end);
+const closed=[];
+const week=(mon,tue=mon,wed=mon,thu=mon,fri=mon,sat=closed,sun=sat)=>({Monday:mon,Tuesday:tue,Wednesday:wed,Thursday:thu,Friday:fri,Saturday:sat,Sunday:sun});
+const marketLate=(friday=['07:00','23:00'],saturday=['09:00','23:00'])=>({
+  Monday:[open('00:00','02:00'),open('07:00','23:59')],
+  Tuesday:[open('00:00','02:00'),open('07:00','23:59')],
+  Wednesday:[open('00:00','02:00'),open('07:00','23:59')],
+  Thursday:[open('00:00','02:00'),open('07:00','23:59')],
+  Friday:[open('00:00','02:00'),open(friday[0],friday[1])],
+  Saturday:[open(saturday[0],saturday[1])],
+  Sunday:[open('09:00','23:59')]
+});
 export const SERVING_SCHEDULES={
   '40':{
     Monday:weekdayNoLate,
@@ -26,7 +38,23 @@ export const SERVING_SCHEDULES={
   '30':{
     Monday:weekdayLong,Tuesday:weekdayLong,Wednesday:weekdayLong,Thursday:weekdayLong,Friday:weekdayNoLate,
     Saturday:weekendBase,Sunday:[...weekendBase,w('Late Night','20:00','22:00')]
-  }
+  },
+  'ucsd-64-degrees':week([open('07:00','23:00')],undefined,undefined,undefined,[open('07:00','21:00')],[open('09:00','21:00')],[open('09:00','21:00')]),
+  'ucsd-bistro':week([open('11:00','21:00')],undefined,undefined,undefined,[open('11:00','21:00')]),
+  'ucsd-canyon-vista':week([open('07:00','23:00')],undefined,undefined,undefined,[open('07:00','23:00')],[open('09:00','23:00')],[open('09:00','23:00')]),
+  'ucsd-cecils':week([open('08:00','15:00')],undefined,undefined,undefined,[open('08:00','15:00')]),
+  'ucsd-club-med':week([open('07:00','14:30')],undefined,undefined,undefined,[open('07:00','14:30')]),
+  'ucsd-foodworx':week([open('09:00','20:00')],undefined,undefined,undefined,[open('09:00','20:00')]),
+  'ucsd-oceanview':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','15:00')]),
+  'ucsd-pines':week([open('07:00','23:00')],undefined,undefined,undefined,[open('07:00','21:00')],[open('09:00','21:00')],[open('09:00','23:00')]),
+  'ucsd-sixth-restaurants':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')]),
+  'ucsd-ventanas':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')],[open('09:00','21:00')],[open('09:00','21:00')]),
+  'ucsd-goodys':marketLate(),
+  'ucsd-seventh-coffee':week([open('07:00','23:00')],undefined,undefined,undefined,[open('07:00','23:00')],[open('09:00','23:00')],[open('09:00','23:00')]),
+  'ucsd-audreys':week([open('08:30','19:00')],undefined,undefined,undefined,[open('08:30','16:00')]),
+  'ucsd-rogers-market':marketLate(),
+  'ucsd-sixth-market':marketLate(),
+  'ucsd-sunshine-market':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')],[open('10:00','17:00')],[open('10:00','17:00')])
 };
 for(const id of ['20','25'])for(const day of ['Tuesday','Wednesday','Thursday','Friday'])SERVING_SCHEDULES[id][day]=SERVING_SCHEDULES[id].Monday;
 
