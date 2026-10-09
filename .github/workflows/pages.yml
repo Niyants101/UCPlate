@@ -46,6 +46,9 @@ jobs:
       - name: Refresh UCLA menu snapshot
         run: node scripts/build-ucla-pages.mjs
 
+      - name: Refresh UC Riverside menu snapshot
+        run: node scripts/build-ucr-pages.mjs
+
       - name: Commit updated menu data
         run: |
           git config user.name "github-actions[bot]"
