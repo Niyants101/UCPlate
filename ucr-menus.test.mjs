@@ -15,16 +15,19 @@ test('UCR posted dates come from FoodPro links',()=>{
   assert.deepEqual(parseAvailableDates(html),['2026-10-09','2026-10-10']);
 });
 
-test('UCR short menu preserves meal, station, diet and allergens',()=>{
+test('UCR short menu preserves meal, station, diet, allergens and direct nutrition label link',()=>{
   const html=`<div class="shortmenutitle">Menus for Friday, October 9, 2026</div>
   <div class="shortmenumeals">Lunch</div>
   <div class="shortmenucats">-- Wok Kitchen --</div>
-  <div class="shortmenurecipes">Sweet &amp; Sour Tofu</div><img src="LegendImages/vegan.gif" alt="Vegan"><img alt="Contains Soybeans">`;
+  <div class="shortmenurecipes"><a href="label.aspx?RecNumAndPort=123*1&amp;dtdate=10/9/2026&amp;locationName=Glasgow&amp;locationNum=03">Sweet &amp; Sour Tofu</a></div><img src="LegendImages/vegan.gif" alt="Vegan"><img alt="Contains Soybeans">`;
   const meals=parseShort(html,'2026-10-09');
   assert.equal(meals[0].name,'Lunch');
   assert.equal(meals[0].items[0].section,'Wok Kitchen');
   assert.equal(meals[0].items[0].diet,'vegan');
   assert.deepEqual(meals[0].items[0].allergens,['Soy']);
+  const nutritionUrl=new URL(meals[0].items[0]._labelSource);
+  assert.equal(nutritionUrl.hostname,'foodpro.ucr.edu');
+  assert.equal(nutritionUrl.pathname,'/foodpro/label.aspx');
 });
 
 test('UCR long menu and label preserve serving calories protein and allergens',()=>{
