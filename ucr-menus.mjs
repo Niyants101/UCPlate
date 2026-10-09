@@ -29,11 +29,15 @@ export function text(html=''){
   return String(html).replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/\s+/g,' ').trim();
 }
 const attr=(html,key)=>String(html).match(new RegExp(`\\b${key}\\s*=\\s*["']([^"']*)["']`,'i'))?.[1];
+function classBody(html,className){
+  const escaped=className.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return String(html).match(new RegExp(`<([a-z0-9]+)\\b[^>]*class=["'][^"']*\\b${escaped}\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/\\1>`,'i'))?.[2]||'';
+}
 function labels(fragment=''){
   const lower=String(fragment).toLowerCase();
   const alts=[...String(fragment).matchAll(/<img\b[^>]*\balt=["']([^"']+)["'][^>]*>/gi)].map(match=>text(match[1]));
   const joined=`${lower} ${alts.join(' ').toLowerCase()}`;
-  const diet=/vegan\.gif|\bvegan\b/.test(joined)?'vegan':/veggie\.gif|\bvegetarian\b/.test(joined)?'vegetarian':'unknown';
+  const diet=/\bvegan\b/.test(joined)?'vegan':/\bvegetarian\b/.test(joined)?'vegetarian':'unknown';
   const map=[['milk','Milk'],['eggs','Egg'],['egg','Egg'],['fish','Fish'],['crustacean shellfish','Shellfish'],['shellfish','Shellfish'],['tree nuts','Tree Nuts'],['peanuts','Peanuts'],['peanut','Peanuts'],['wheat','Wheat'],['soybeans','Soy'],['soy','Soy'],['sesame','Sesame']];
   const allergens=[];
   for(const [needle,name] of map){if(joined.includes(`contains ${needle}`)&&!allergens.includes(name))allergens.push(name);}
@@ -78,25 +82,25 @@ export function parseAvailableDates(html=''){
   for(const match of String(html).matchAll(/\bvalue=["']([^"']*dtdate=[^"']+)["']/gi)){
     try{const url=new URL(match[1].replace(/&amp;/gi,'&'),ORIGIN),date=isoFromFoodProDate(url.searchParams.get('dtdate'));if(date)dates.add(date);}catch{}
   }
-  const title=text(String(html).match(/class=["']shortmenutitle["'][^>]*>([\s\S]*?)<\/div>/i)?.[1]||'');
+  const title=text(classBody(html,'shortmenutitle'));
   const parsed=new Date(title.replace(/^Menus for\s*/i,''));
   if(!Number.isNaN(parsed.getTime()))dates.add(`${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`);
   return [...dates].filter(validDate).sort();
 }
 export function parseShort(html,date){
-  const title=text(String(html).match(/class=["']shortmenutitle["'][^>]*>([\s\S]*?)<\/div>/i)?.[1]||'');
+  const source=String(html),title=text(classBody(source,'shortmenutitle'));
   const parsed=new Date(title.replace(/^Menus for\s*/i,''));
   const parsedDate=Number.isNaN(parsed.getTime())?null:`${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
   if(parsedDate!==date)throw new Error('No UC Riverside menu is posted for this location and date.');
-  const tokens=[...String(html).matchAll(/<div\b[^>]*class=["'](shortmenumeals|shortmenucats|shortmenurecipes)["'][^>]*>([\s\S]*?)<\/div>/gi)];
+  const tokens=[...source.matchAll(/<([a-z0-9]+)\b[^>]*class=["'][^"']*\b(shortmenumeals|shortmenucats|shortmenurecipes)\b[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi)];
   let meal=null,section='';const meals=[];
   for(let i=0;i<tokens.length;i++){
-    const token=tokens[i],name=text(token[2]);
-    if(token[1]==='shortmenumeals'){meal={name,items:[]};meals.push(meal);section='';continue;}
-    if(token[1]==='shortmenucats'){section=name.replace(/^--\s*|\s*--$/g,'');continue;}
-    if(token[1]==='shortmenurecipes'&&meal&&name){
-      const fragment=String(html).slice(token.index,tokens[i+1]?.index||String(html).length),meta=labels(fragment);
-      const link=token[2].match(/<a\b([^>]*)>([\s\S]*?)<\/a>/i),href=link?attr(link[1],'href'):null;
+    const token=tokens[i],kind=token[2],body=token[3],name=text(body);
+    if(kind==='shortmenumeals'){meal={name,items:[]};meals.push(meal);section='';continue;}
+    if(kind==='shortmenucats'){section=name.replace(/^--\s*|\s*--$/g,'');continue;}
+    if(kind==='shortmenurecipes'&&meal&&name){
+      const fragment=source.slice(token.index,tokens[i+1]?.index||source.length),meta=labels(fragment);
+      const link=body.match(/<a\b([^>]*)>([\s\S]*?)<\/a>/i),href=link?attr(link[1],'href'):null;
       let labelSource=null;
       if(href&&/label\.aspx\?/i.test(href)){
         try{labelSource=new URL(href.replace(/&amp;/gi,'&'),ORIGIN).href;}catch{}
@@ -107,19 +111,19 @@ export function parseShort(html,date){
   return meals.filter(entry=>entry.name&&entry.items.length);
 }
 export function parseLong(html=''){
-  const matches=[...String(html).matchAll(/<div\b[^>]*class=["']longmenucoldispname["'][^>]*>([\s\S]*?)<\/div>/gi)];
+  const source=String(html),matches=[...source.matchAll(/<([a-z0-9]+)\b[^>]*class=["'][^"']*\blongmenucoldispname\b[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi)];
   return matches.flatMap((match,index)=>{
-    const link=match[1].match(/<a\b([^>]*)>([\s\S]*?)<\/a>/i);if(!link)return [];
+    const link=match[2].match(/<a\b([^>]*)>([\s\S]*?)<\/a>/i);if(!link)return [];
     const href=attr(link[1],'href');if(!href||!/label\.aspx\?/i.test(href))return [];
-    const fragment=String(html).slice(match.index,matches[index+1]?.index||String(html).length),meta=labels(fragment);
-    return [{name:text(link[2]),source:new URL(href.replace(/&amp;/g,'&'),ORIGIN).href,serving:text(fragment.match(/class=["']longmenucolportions["'][^>]*>([\s\S]*?)<\/div>/i)?.[1]||''),diet:meta.diet,allergens:meta.allergens}];
+    const fragment=source.slice(match.index,matches[index+1]?.index||source.length),meta=labels(fragment);
+    return [{name:text(link[2]),source:new URL(href.replace(/&amp;/g,'&'),ORIGIN).href,serving:text(classBody(fragment,'longmenucolportions')),diet:meta.diet,allergens:meta.allergens}];
   });
 }
 export function parseLabel(html='',expectedName=''){
-  const name=text(String(html).match(/class=["']labelrecipe["'][^>]*>([\s\S]*?)<\/div>/i)?.[1]||'');
+  const name=text(classBody(html,'labelrecipe'));
   if(expectedName&&name&&name.toLowerCase()!==String(expectedName).trim().toLowerCase())throw new Error('Nutrition label did not match the UC Riverside food.');
   const plain=text(html),read=regex=>{const match=plain.match(regex);return match?Number(match[1]):null;};
-  const rawAllergens=text(String(html).match(/class=["']labelallergensvalue["'][^>]*>([\s\S]*?)<\/span>/i)?.[1]||'');
+  const rawAllergens=text(classBody(html,'labelallergensvalue'));
   const aliases=new Map([['milk','Milk'],['egg','Egg'],['eggs','Egg'],['fish','Fish'],['shellfish','Shellfish'],['crustacean shellfish','Shellfish'],['tree nuts','Tree Nuts'],['peanut','Peanuts'],['peanuts','Peanuts'],['wheat','Wheat'],['soy','Soy'],['soybeans','Soy'],['sesame','Sesame']]);
   const allergens=[];
   for(const part of rawAllergens.split(/[,;/]/)){const key=part.trim().toLowerCase(),normalized=aliases.get(key)||part.trim();if(normalized&&!allergens.includes(normalized))allergens.push(normalized);}
