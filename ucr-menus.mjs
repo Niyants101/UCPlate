@@ -46,6 +46,7 @@ function buildSourceUrl(date,location,path='shortmenu.aspx',meal){
     locationNum:location.sourceId,
     locationName:location.sourceName,
     naFlag:'1',
+    myaction:'read',
     WeeksMenus:"This Week's Menus",
     dtdate:foodProDate(date),
     ...(meal?{mealName:meal}:{})
@@ -186,6 +187,6 @@ export async function getMenu(date,locationId,requestedMeal){
       }catch{return base;}
     },6);
     const missing=items.filter(item=>item.nutritionStatus!=='available').length;
-    return {status:missing?items.some(item=>item.nutritionStatus==='available')?'partial':'partial':'live',date,locationId,locationName:location.name,meal:meal.name,meals:day.meals.map(entry=>entry.name),items,source:day.source,schedule:scheduleFor(location.id,date),message:missing?`${missing} item(s) have no readable nutrition label. Missing values are shown as unavailable.`:'Menu and nutrition from UC Riverside Dining. Values are per listed serving.'};
+    return {status:missing?'partial':'live',date,locationId,locationName:location.name,meal:meal.name,meals:day.meals.map(entry=>entry.name),items,source:day.source,schedule:scheduleFor(location.id,date),message:missing?`${missing} item(s) have no readable nutrition label. Missing values are shown as unavailable.`:'Menu and nutrition from UC Riverside Dining. Values are per listed serving.'};
   });
 }
