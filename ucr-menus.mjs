@@ -8,6 +8,7 @@ const TTL=10*60*1000;
 export const UCR_LOCATIONS=[
   {id:'ucr-glasgow',sourceId:'03',name:'Glasgow Dining',sourceName:'Glasgow',kind:'dining-hall'},
   {id:'ucr-lothian',sourceId:'02',name:'Lothian Dining',sourceName:'Lothian Residential Restaurant',kind:'dining-hall'},
+  {id:'ucr-barn',sourceId:'06',name:'The Barn',sourceName:'The Barn',kind:'restaurant'},
   {id:'ucr-noods',sourceId:'05',name:'NOODS: The Noodle Bar',sourceName:'Noods The Noodle Bar',kind:'restaurant'},
   {id:'ucr-savor',sourceId:'25',name:'Savor',sourceName:'Savor',kind:'restaurant'}
 ];
@@ -127,8 +128,8 @@ export function parseLabel(html='',expectedName=''){
   const aliases=new Map([['milk','Milk'],['egg','Egg'],['eggs','Egg'],['fish','Fish'],['shellfish','Shellfish'],['crustacean shellfish','Shellfish'],['tree nuts','Tree Nuts'],['peanut','Peanuts'],['peanuts','Peanuts'],['wheat','Wheat'],['soy','Soy'],['soybeans','Soy'],['sesame','Sesame']]);
   const allergens=[];
   for(const part of rawAllergens.split(/[,;/]/)){const key=part.trim().toLowerCase(),normalized=aliases.get(key)||part.trim();if(normalized&&!allergens.includes(normalized))allergens.push(normalized);}
-  const meta=labels(html);
-  return {calories:read(/\bCalories\s+(\d+(?:\.\d+)?)/i),protein:read(/\bProtein\s+(\d+(?:\.\d+)?)\s*g/i),serving:plain.match(/Serving Size\s+(.+?)\s+Calories/i)?.[1]||'',diet:meta.diet,allergens:[...new Set([...allergens,...meta.allergens])]};
+  const serving=plain.match(/Serving Size\s+(.+?)\s+Amount per serving/i)?.[1]||plain.match(/Serving Size\s+(.+?)\s+Calories/i)?.[1]||'';
+  return {calories:read(/\bCalories\s+(\d+(?:\.\d+)?)/i),protein:read(/\bProtein\s+(\d+(?:\.\d+)?)\s*g/i),serving,allergens};
 }
 function scheduleFor(locationId,date){
   const day=new Date(`${date}T12:00:00Z`).getUTCDay();
@@ -138,6 +139,7 @@ function scheduleFor(locationId,date){
     return [{name:'Breakfast',start:'07:30',end:'10:30'},{name:'Lunch',start:'10:30',end:'14:30'},{name:'Dinner',start:'17:00',end:day===5?'21:00':'22:30'}];
   }
   if(locationId==='ucr-lothian')return day===0||day===6?[]:[{name:'Lunch',start:'11:00',end:'14:30'},{name:'Continuous',start:'14:30',end:'16:30'},{name:'Dinner',start:'17:00',end:'22:00'}];
+  if(locationId==='ucr-barn')return day===0||day===6?[]:[{name:'Open',start:'11:00',end:'19:00'}];
   if(locationId==='ucr-noods')return day===5||day===6?[]:[{name:'Open',start:'17:00',end:'24:00'}];
   if(locationId==='ucr-savor')return day===0||day===6?[]:[{name:'Open',start:'11:00',end:day===5?'17:00':'18:00'}];
   return [];
@@ -160,12 +162,12 @@ export async function getDashboard(date){
   if(!validDate(date))throw new Error('Choose a valid UC Riverside menu date.');
   const locations=await mapLimit(UCR_LOCATIONS,async location=>{
     try{
-      const day=await dayPage(date,location);
-      return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:day.error?'empty':'live',message:day.error||'Menu posted by UC Riverside Dining.',source:day.source,schedule:scheduleFor(location.id,date),availableDates:day.availableDates,meals:day.meals};
+      const day=await dayPage(date,location),live=Boolean(day.meals?.length);
+      return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:day.error||!live?'empty':'live',message:day.error||(live?'Menu posted by UC Riverside Dining.':'No itemized menu is posted for this location and date.'),source:day.source,schedule:scheduleFor(location.id,date),availableDates:day.availableDates,meals:day.meals};
     }catch(error){
       return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:'unavailable',message:error.message,source:buildSourceUrl(date,location),schedule:scheduleFor(location.id,date),availableDates:[],meals:[]};
     }
-  },4);
+  },5);
   return {date,locations,availableDates:[...new Set(locations.flatMap(location=>location.availableDates||[]))].filter(validDate).sort(),fetchedAt:new Date().toISOString()};
 }
 export async function getMenu(date,locationId,requestedMeal){
@@ -183,11 +185,11 @@ export async function getMenu(date,locationId,requestedMeal){
     const items=await mapLimit(meal.items,async item=>{
       const entry=entries.find(candidate=>candidate.name.toLowerCase()===item.name.toLowerCase());
       const labelSource=item._labelSource||entry?.source||null;
-      const base={...publicItem(item),date,hallId:location.id,period:meal.name.toLowerCase(),calories:null,protein:null,serving:entry?.serving||'',source:labelSource||day.source,nutritionSource:null,nutritionStatus:'unavailable',allergens:[...new Set([...(item.allergens||[]),...(entry?.allergens||[])])]};
+      const base={...publicItem(item),diet:item.diet!=='unknown'?item.diet:(entry?.diet||'unknown'),date,hallId:location.id,period:meal.name.toLowerCase(),calories:null,protein:null,serving:entry?.serving||'',source:labelSource||day.source,nutritionSource:null,nutritionStatus:'unavailable',allergens:[...new Set([...(item.allergens||[]),...(entry?.allergens||[])])]};
       if(!labelSource)return base;
       try{
         const nutrition=await cached(`label:${labelSource}`,async()=>parseLabel(await request(labelSource),item.name));
-        return {...base,...nutrition,serving:nutrition.serving||base.serving,allergens:[...new Set([...base.allergens,...(nutrition.allergens||[])])],nutritionSource:labelSource,nutritionStatus:Number.isFinite(nutrition.calories)&&Number.isFinite(nutrition.protein)?'available':'unavailable'};
+        return {...base,...nutrition,diet:base.diet,serving:nutrition.serving||base.serving,allergens:[...new Set([...base.allergens,...(nutrition.allergens||[])])],nutritionSource:labelSource,nutritionStatus:Number.isFinite(nutrition.calories)&&Number.isFinite(nutrition.protein)?'available':'unavailable'};
       }catch{return base;}
     },6);
     const missing=items.filter(item=>item.nutritionStatus!=='available').length;
