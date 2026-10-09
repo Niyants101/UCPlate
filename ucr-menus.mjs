@@ -95,7 +95,12 @@ export function parseShort(html,date){
     if(token[1]==='shortmenucats'){section=name.replace(/^--\s*|\s*--$/g,'');continue;}
     if(token[1]==='shortmenurecipes'&&meal&&name){
       const fragment=String(html).slice(token.index,tokens[i+1]?.index||String(html).length),meta=labels(fragment);
-      meal.items.push({name,section:section||'Menu',category:section||'Menu',diet:meta.diet,allergens:meta.allergens});
+      const link=token[2].match(/<a\b([^>]*)>([\s\S]*?)<\/a>/i),href=link?attr(link[1],'href'):null;
+      let labelSource=null;
+      if(href&&/label\.aspx\?/i.test(href)){
+        try{labelSource=new URL(href.replace(/&amp;/gi,'&'),ORIGIN).href;}catch{}
+      }
+      meal.items.push({name,section:section||'Menu',category:section||'Menu',diet:meta.diet,allergens:meta.allergens,_labelSource:labelSource});
     }
   }
   return meals.filter(entry=>entry.name&&entry.items.length);
@@ -141,6 +146,7 @@ async function dayPage(date,location){
   });
 }
 async function mapLimit(items,fn,limit=6){let index=0;const result=new Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;result[i]=await fn(items[i],i);}}));return result;}
+function publicItem(item){const {_labelSource,...clean}=item;return clean;}
 export async function getAvailableDates(){
   const location=UCR_LOCATIONS[0],html=await request(buildSourceUrl(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),location));
   return parseAvailableDates(html);
@@ -165,16 +171,21 @@ export async function getMenu(date,locationId,requestedMeal){
   const meal=day.meals.find(entry=>entry.name.toLowerCase()===String(requestedMeal||'').toLowerCase())||(!requestedMeal?day.meals[0]:null);
   if(!meal)return {status:'empty',date,locationId,locationName:location.name,meals:day.meals.map(entry=>entry.name),items:[],source:day.source,message:'This meal is not published for this location and date.'};
   return cached(`meal:${date}:${locationId}:${meal.name}`,async()=>{
-    const longHtml=await request(buildSourceUrl(date,location,'longmenu.aspx',meal.name)),entries=parseLong(longHtml);
+    let entries=[];
+    if(meal.items.some(item=>!item._labelSource)){
+      try{entries=parseLong(await request(buildSourceUrl(date,location,'longmenu.aspx',meal.name)));}catch{}
+    }
     const items=await mapLimit(meal.items,async item=>{
       const entry=entries.find(candidate=>candidate.name.toLowerCase()===item.name.toLowerCase());
-      const base={...item,date,hallId:location.id,period:meal.name.toLowerCase(),calories:null,protein:null,serving:entry?.serving||'',source:entry?.source||day.source,nutritionSource:null,nutritionStatus:'unavailable',allergens:[...new Set([...(item.allergens||[]),...(entry?.allergens||[])])]};
-      if(!entry)return base;
+      const labelSource=item._labelSource||entry?.source||null;
+      const base={...publicItem(item),date,hallId:location.id,period:meal.name.toLowerCase(),calories:null,protein:null,serving:entry?.serving||'',source:labelSource||day.source,nutritionSource:null,nutritionStatus:'unavailable',allergens:[...new Set([...(item.allergens||[]),...(entry?.allergens||[])])]};
+      if(!labelSource)return base;
       try{
-        const nutrition=await cached(`label:${entry.source}`,async()=>parseLabel(await request(entry.source),item.name));
-        return {...base,...nutrition,allergens:[...new Set([...base.allergens,...(nutrition.allergens||[])])],nutritionSource:entry.source,nutritionStatus:Number.isFinite(nutrition.calories)&&Number.isFinite(nutrition.protein)?'available':'unavailable'};
+        const nutrition=await cached(`label:${labelSource}`,async()=>parseLabel(await request(labelSource),item.name));
+        return {...base,...nutrition,serving:nutrition.serving||base.serving,allergens:[...new Set([...base.allergens,...(nutrition.allergens||[])])],nutritionSource:labelSource,nutritionStatus:Number.isFinite(nutrition.calories)&&Number.isFinite(nutrition.protein)?'available':'unavailable'};
       }catch{return base;}
     },6);
-    return {status:items.some(item=>item.nutritionStatus==='available')?'live':'partial',date,locationId,locationName:location.name,meal:meal.name,meals:day.meals.map(entry=>entry.name),items,source:day.source,schedule:scheduleFor(location.id,date)};
+    const missing=items.filter(item=>item.nutritionStatus!=='available').length;
+    return {status:missing?items.some(item=>item.nutritionStatus==='available')?'partial':'partial':'live',date,locationId,locationName:location.name,meal:meal.name,meals:day.meals.map(entry=>entry.name),items,source:day.source,schedule:scheduleFor(location.id,date),message:missing?`${missing} item(s) have no readable nutrition label. Missing values are shown as unavailable.`:'Menu and nutrition from UC Riverside Dining. Values are per listed serving.'};
   });
 }
