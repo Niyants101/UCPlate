@@ -17,18 +17,20 @@ test('existing pre-campus profiles migrate to UCSC',()=>{
   assert.equal(effectiveCampusId({onboardingComplete:true,campusId:'ucsd'}),'ucsd');
 });
 
-test('validated UCSC, UCSD, UC Berkeley, UC Davis, UC Irvine, and UCLA campus adapters are live',()=>{
+test('validated UCSC, UCSD, UC Berkeley, UC Davis, UC Irvine, UCLA, and UC Riverside campus adapters are live',()=>{
   assert.equal(campusHasLiveMenus('ucsc'),true);
   assert.equal(campusHasLiveMenus('ucsd'),true);
   assert.equal(campusHasLiveMenus('ucb'),true);
   assert.equal(campusHasLiveMenus('ucd'),true);
   assert.equal(campusHasLiveMenus('uci'),true);
   assert.equal(campusHasLiveMenus('ucla'),true);
+  assert.equal(campusHasLiveMenus('ucr'),true);
   assert.equal(campusDataRoot('ucsc'),'./data');
   assert.equal(campusDataRoot('ucsd'),'./data/campuses/ucsd');
   assert.equal(campusDataRoot('ucb'),'./data/campuses/ucb');
   assert.equal(campusDataRoot('ucd'),'./data/campuses/ucd');
   assert.equal(campusDataRoot('uci'),'./data/campuses/uci');
   assert.equal(campusDataRoot('ucla'),'./data/campuses/ucla');
-  assert.equal(campusById('ucla').name,'UCLA');
+  assert.equal(campusDataRoot('ucr'),'./data/campuses/ucr');
+  assert.equal(campusById('ucr').name,'UC Riverside');
 });
