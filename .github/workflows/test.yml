@@ -48,39 +48,5 @@ jobs:
         run: node scripts/build-uci-pages.mjs
       - name: Smoke build UCLA snapshot
         run: node scripts/build-ucla-pages.mjs
-      - name: Inspect UC Riverside raw FoodPro markup
-        run: |
-          node --input-type=module <<'NODE'
-          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-          const [y,m,d]=today.split('-');
-          const url=new URL('https://foodpro.ucr.edu/foodpro/shortmenu.aspx');
-          url.search=new URLSearchParams({sName:'University of California, Riverside Dining Services',locationNum:'03',locationName:'Glasgow',naFlag:'1',myaction:'read',WeeksMenus:"This Week's Menus",dtdate:`${Number(m)}/${Number(d)}/${y}`});
-          const response=await fetch(url,{headers:{'User-Agent':'UCPlate/0.1 (+https://ucplate.com)','Accept':'text/html,*/*'}});
-          const html=await response.text();
-          console.log('RAW status=',response.status,'url=',url.href,'length=',html.length);
-          for(const needle of ['shortmenutitle','shortmenumeals','shortmenucats','shortmenurecipes','Menus for','Breakfast','Fruit Yogurt Parfait']){
-            const index=html.indexOf(needle);
-            console.log(`\nNEEDLE ${needle} AT ${index}\n${index>=0?html.slice(Math.max(0,index-350),Math.min(html.length,index+1000)):'NOT FOUND'}`);
-          }
-          NODE
-      - name: Diagnose UC Riverside parsed menu
-        run: |
-          node --input-type=module <<'NODE'
-          import {getDashboard,getMenu} from './ucr-menus.mjs';
-          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-          const dashboard=await getDashboard(today);
-          console.log('UCR date',today);
-          for(const location of dashboard.locations){
-            const first=location.meals?.[0];
-            console.log(location.id,'status=',location.status,'message=',location.message,'meals=',location.meals?.map(m=>`${m.name}:${m.items.length}`).join(','),'firstLabel=',Boolean(first?.items?.[0]?._labelSource),'firstItem=',first?.items?.[0]?.name||'none');
-            if(first){
-              try{
-                const detail=await getMenu(today,location.id,first.name);
-                const available=detail.items?.filter(item=>item.nutritionStatus==='available')||[];
-                console.log(' detail',location.id,first.name,'items=',detail.items?.length||0,'available=',available.length,'sample=',JSON.stringify(detail.items?.[0]||null));
-              }catch(error){console.log(' detail error',location.id,error.message);}
-            }
-          }
-          NODE
       - name: Smoke build UC Riverside snapshot
         run: node scripts/build-ucr-pages.mjs
