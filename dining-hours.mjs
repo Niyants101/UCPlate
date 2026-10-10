@@ -17,6 +17,10 @@ const marketLate=(friday=['07:00','23:00'],saturday=['09:00','23:00'])=>({
   Saturday:[open(saturday[0],saturday[1])],
   Sunday:[open('09:00','23:59')]
 });
+const ucsbWeekday=[w('Breakfast','07:15','10:00'),w('Lunch','11:00','15:00'),w('Dinner','17:00','20:30')];
+const ucsbWeekend=[w('Brunch','10:00','14:00'),w('Dinner','17:00','20:30')];
+const ucsbDining=()=>week(ucsbWeekday,undefined,undefined,undefined,undefined,ucsbWeekend,ucsbWeekend);
+const ucsbOrtega=week([w('Lunch','10:00','15:00'),w('Dinner','15:00','20:00')],undefined,undefined,undefined,undefined,[],[]);
 export const SERVING_SCHEDULES={
   '40':{
     Monday:weekdayNoLate,
@@ -54,7 +58,11 @@ export const SERVING_SCHEDULES={
   'ucsd-audreys':week([open('08:30','19:00')],undefined,undefined,undefined,[open('08:30','16:00')]),
   'ucsd-rogers-market':marketLate(),
   'ucsd-sixth-market':marketLate(),
-  'ucsd-sunshine-market':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')],[open('10:00','17:00')],[open('10:00','17:00')])
+  'ucsd-sunshine-market':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')],[open('10:00','17:00')],[open('10:00','17:00')]),
+  'ucsb-carrillo':ucsbDining(),
+  'ucsb-de-la-guerra':ucsbDining(),
+  'ucsb-portola':ucsbDining(),
+  'ucsb-ortega':ucsbOrtega
 };
 for(const id of ['20','25'])for(const day of ['Tuesday','Wednesday','Thursday','Friday'])SERVING_SCHEDULES[id][day]=SERVING_SCHEDULES[id].Monday;
 
@@ -85,19 +93,24 @@ function findNext(date,hallId,afterMinutes){
   }
   return null;
 }
-export function getServingStatus(date,hallId,now=new Date()){
-  const schedule=getDaySchedule(date,hallId);
+export function getServingStatus(date,hallId,now=new Date(),scheduleOverride=undefined){
+  const usingOverride=scheduleOverride!==undefined;
+  const schedule=usingOverride?scheduleOverride:getDaySchedule(date,hallId);
   if(schedule===null)return {state:'unknown',label:'Hours not built in',schedule:null,next:null};
   const campus=pacificNow(now);
+  const nextInSchedule=afterMinutes=>{
+    const item=(schedule||[]).find(x=>minutes(x.start)>=afterMinutes);
+    return item?{date,name:item.name,start:item.start,limited:item.limited}:null;
+  };
   if(date!==campus.date){
-    const first=schedule[0]||null;
-    return {state:'scheduled',label:schedule.length?'Regular schedule':'Closed on regular schedule',schedule,next:first?{date,name:first.name,start:first.start,limited:first.limited}:findNext(date,hallId,0)};
+    const first=schedule?.[0]||null;
+    return {state:'scheduled',label:schedule?.length?'Regular schedule':'Closed on regular schedule',schedule,next:first?{date,name:first.name,start:first.start,limited:first.limited}:usingOverride?null:findNext(date,hallId,0)};
   }
-  const current=schedule.find(x=>campus.minutes>=minutes(x.start)&&campus.minutes<minutes(x.end));
+  const current=(schedule||[]).find(x=>campus.minutes>=minutes(x.start)&&campus.minutes<minutes(x.end));
   if(current){
-    const next=schedule.find(x=>minutes(x.start)>=minutes(current.end))||findNext(addDays(date,1),hallId,0);
+    const next=nextInSchedule(minutes(current.end))||(usingOverride?null:findNext(addDays(date,1),hallId,0));
     return {state:current.limited?'limited':'open',label:current.name,start:current.start,end:current.end,limited:current.limited,schedule,next};
   }
-  const next=findNext(date,hallId,campus.minutes);
+  const next=nextInSchedule(campus.minutes)||(usingOverride?null:findNext(date,hallId,campus.minutes));
   return {state:'closed',label:'Closed',schedule,next};
 }
