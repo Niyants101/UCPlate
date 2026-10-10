@@ -1,0 +1,37 @@
+name: Probe UCSF menu source
+on:
+  push:
+    branches: [feature/ucsf-dining]
+    paths:
+      - 'scripts/probe-ucsf-trigger.txt'
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect UCSF Meal Choice Connect
+        run: |
+          node - <<'NODE'
+          import {writeFile} from 'node:fs/promises';
+          const base='https://webmenus.ucsfmedicalcenter.org/';
+          const res=await fetch(base,{headers:{'User-Agent':'UCPlate/0.1'}});
+          const html=await res.text();
+          const assets=[...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|json)(?:\?[^"']*)?)["']/gi)].map(m=>new URL(m[1],base).href);
+          const result={status:res.status,url:res.url,html:html.slice(0,30000),assets:[]};
+          for(const url of [...new Set(assets)].slice(0,20)){
+            try{const r=await fetch(url);const text=await r.text();result.assets.push({url,status:r.status,text:text.slice(0,200000)});}catch(error){result.assets.push({url,error:error.message});}
+          }
+          await writeFile('ucsf-probe.json',JSON.stringify(result));
+          NODE
+      - name: Commit probe result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ucsf-probe.json
+          git commit -m "Capture UCSF menu probe" || exit 0
+          git push
