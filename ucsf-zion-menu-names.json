@@ -1,0 +1,16 @@
+[
+  {
+    "id": 996,
+    "menuTypeId": 996,
+    "name": "MZ Cafe",
+    "sortSequence": 1,
+    "interfaceCode": null
+  },
+  {
+    "id": 43,
+    "menuTypeId": 43,
+    "name": "PFS Room Service",
+    "sortSequence": 2,
+    "interfaceCode": null
+  }
+]
