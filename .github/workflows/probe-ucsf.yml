@@ -19,18 +19,36 @@ jobs:
           node - <<'NODE'
           import {writeFile} from 'node:fs/promises';
           const root='https://webmenus.ucsfmedicalcenter.org/';
-          const html=await (await fetch(root)).text();
-          const main=html.match(/src=["'](main\.[^"']+\.js)["']/i)?.[1];
-          const js=await (await fetch(new URL(main,root))).text();
-          const terms=['HsApplicationModule','FacilityId','facilityId','dbName','DbName','database','Database','db params','createHeaders','activatedRoute','queryParamMap'];
-          const contexts={};
-          for(const term of terms){const rows=[];let start=0;while(rows.length<12){const i=js.indexOf(term,start);if(i<0)break;rows.push(js.slice(Math.max(0,i-1200),Math.min(js.length,i+term.length+1800)));start=i+term.length;}contexts[term]=rows;}
-          await writeFile('ucsf-probe.json',JSON.stringify({main,contexts},null,2));
+          const settings=await (await fetch(new URL('/webapi/settings/get',root))).json();
+          const facilities=await (await fetch(new URL('/webapi/facility/all',root))).json();
+          const apiBase=new URL('api/HospitalitySuite/',settings.apiUrl.endsWith('/')?settings.apiUrl:settings.apiUrl+'/');
+          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          const results=[];
+          for(const facility of facilities){
+            const headers={HsApplicationModule:'MealChoiceConnect',FacilityId:facility.facilityId,Accept:'application/json','Content-Type':'application/json'};
+            const get=async path=>{const r=await fetch(new URL(path,apiBase),{headers});let body;try{body=await r.json()}catch{body=await r.text()}return {status:r.status,url:r.url,body}};
+            const menus=await get('menu/getMenus');
+            const meals=await get('meal/getMeals');
+            const menuList=Array.isArray(menus.body)?menus.body:(menus.body?.data||menus.body?.menus||[]);
+            const mealList=Array.isArray(meals.body)?meals.body:(meals.body?.data||meals.body?.meals||[]);
+            const samples=[];
+            for(const menu of menuList.slice(0,12)){
+              for(const meal of mealList.slice(0,8)){
+                const menuId=menu.menuId??menu.id??menu.MenuId;const mealId=meal.mealId??meal.id??meal.MealId;if(menuId==null||mealId==null)continue;
+                const u=new URL('publishingGroups/GuestMenuData',apiBase);u.searchParams.set('menuId',menuId);u.searchParams.set('mealId',mealId);u.searchParams.set('serveDate',today);
+                const r=await fetch(u,{headers});let body;try{body=await r.json()}catch{body=await r.text()}
+                const text=JSON.stringify(body);if(r.ok&&text.length>20&&text!=='[]'&&text!=='{}'){samples.push({menu,meal,status:r.status,body});if(samples.length>=2)break;}
+              }
+              if(samples.length>=2)break;
+            }
+            results.push({facility,menus,meals,samples});
+          }
+          await writeFile('ucsf-probe.json',JSON.stringify({settings,today,results},null,2));
           NODE
       - name: Commit probe result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ucsf-probe.json
-          git commit -m "Capture UCSF API header contexts" || exit 0
+          git commit -m "Capture UCSF facility menu responses" || exit 0
           git push
