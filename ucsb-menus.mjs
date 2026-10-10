@@ -75,8 +75,8 @@ class NetNutritionSession{
   cookieHeader(){return [...this.cookies].map(([k,v])=>`${k}=${v}`).join('; ');}
   async request(method,endpoint='',form=null,redirects=0){
     if(redirects>8)throw new Error('UCSB Food Facts redirected too many times.');
-    const base=`${UCSB_FOOD_FACTS_URL.replace(/\/$/,'')}/`;
-    const url=new URL(endpoint||'',base);
+    const base=`${UCSB_FOOD_FACTS_URL.replace(/\/$/,'')}/`,target=String(endpoint||'');
+    const url=/^https?:\/\//i.test(target)?new URL(target):new URL(target.replace(/^\/+/,''),base);
     if(url.hostname!=='nutrition.info.dining.ucsb.edu'||!url.pathname.startsWith('/NetNutrition/1'))throw new Error('Unexpected UCSB Food Facts source.');
     const body=form?new URLSearchParams(form).toString():null;
     const headers={
