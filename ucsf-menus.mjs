@@ -4,6 +4,9 @@ const UA='UCPlate/0.1 (+https://ucplate.com)';
 const cache=new Map();
 const TTL=10*60*1000;
 const DIET_CODES=new Set(['vg','v','gf','ss','s','ls','l/s','df','w/og']);
+const REQUEST_GAP_MS=250;
+let requestTail=Promise.resolve();
+let lastRequestAt=0;
 
 export const UCSF_LOCATIONS=[
   {id:'ucsf-parnassus',facilityId:'PARN',name:'Moffitt Café',sourceName:'Parnassus Cafe Menu',kind:'restaurant'},
@@ -77,8 +80,25 @@ function allergensFrom(raw){
   return unique(found).filter(value=>value&&value.length<80);
 }
 async function cached(key,task){const old=cache.get(key);if(old&&Date.now()-old.time<TTL)return old.value;const value=await task();cache.set(key,{time:Date.now(),value});if(cache.size>2000)cache.delete(cache.keys().next().value);return value;}
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function queuedFetch(url,options={}){
+  const run=async()=>{
+    const wait=REQUEST_GAP_MS-(Date.now()-lastRequestAt);if(wait>0)await sleep(wait);
+    let lastResponse=null;
+    for(let attempt=0;attempt<5;attempt++){
+      const response=await fetch(url,{...options,signal:AbortSignal.timeout(30000)});lastResponse=response;lastRequestAt=Date.now();
+      if(response.status!==429)return response;
+      const retryHeader=Number(response.headers.get('retry-after'));
+      const retryMs=Number.isFinite(retryHeader)&&retryHeader>0?retryHeader*1000:750*(2**attempt);
+      try{await response.arrayBuffer();}catch{}
+      await sleep(Math.min(retryMs,15000));
+    }
+    return lastResponse;
+  };
+  const task=requestTail.then(run,run);requestTail=task.then(()=>undefined,()=>undefined);return task;
+}
 async function requestJson(url,options={}){
-  const response=await fetch(url,{...options,headers:{'User-Agent':UA,'Accept':'application/json',...(options.headers||{})},signal:AbortSignal.timeout(30000)});
+  const response=await queuedFetch(url,{...options,headers:{'User-Agent':UA,'Accept':'application/json',...(options.headers||{})}});
   if(!response.ok){let detail='';try{detail=clean((await response.json())?.message)}catch{}throw new Error(`UCSF menu service returned HTTP ${response.status}${detail?`: ${detail}`:''}.`);}
   return response.json();
 }
