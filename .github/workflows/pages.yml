@@ -55,6 +55,9 @@ jobs:
       - name: Refresh UC Merced menu snapshot
         run: node scripts/build-ucm-pages.mjs
 
+      - name: Refresh UCSF menu snapshot
+        run: node scripts/build-ucsf-pages.mjs
+
       - name: Commit updated menu data
         run: |
           git config user.name "github-actions[bot]"
