@@ -8,6 +8,7 @@ const dateRoot=new URL('../data/campuses/ucsf/dates/',import.meta.url);
 const detailRoot=new URL('../data/campuses/ucsf/details/',import.meta.url);
 const now=new Date();
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
 function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],glutenFree:Boolean(item.glutenFree)}))};}
 function chooseCurrentMeal(meals,date){
@@ -22,8 +23,8 @@ const dates=(await getAvailableDates()).filter(date=>date>=today).sort();
 if(!dates.length)throw new Error('UCSF Meal Choice Connect did not expose any menu dates.');
 const generatedDates=new Map();
 
-for(const date of dates){
-  const dashboard=await getDashboard(date);
+for(let dateIndex=0;dateIndex<dates.length;dateIndex++){
+  const date=dates[dateIndex],dashboard=await getDashboard(date);
   const unavailable=dashboard.locations.filter(location=>location.status==='unavailable');
   if(unavailable.length)throw new Error(`UCSF snapshot aborted because ${unavailable.map(location=>`${location.name}: ${location.message}`).join('; ')}`);
   const locations=dashboard.locations.map(location=>{
@@ -32,6 +33,7 @@ for(const date of dates){
     return {id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(shortMeal),detailPath:null,bulk};
   });
   generatedDates.set(date,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,fetchedAt:dashboard.fetchedAt,locations});
+  if(dateIndex<dates.length-1)await sleep(7000);
 }
 
 await rm(dateRoot,{recursive:true,force:true});
