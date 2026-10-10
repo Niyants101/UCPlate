@@ -3,7 +3,7 @@ export const UC_CAMPUSES = [
   {id:'ucd',name:'UC Davis',shortName:'Davis',city:'Davis',menuStatus:'live',adapter:'ucd-residential-dining',dataRoot:'./data/campuses/ucd'},
   {id:'uci',name:'UC Irvine',shortName:'Irvine',city:'Irvine',menuStatus:'live',adapter:'uci-mydininghub',dataRoot:'./data/campuses/uci'},
   {id:'ucla',name:'UCLA',shortName:'UCLA',city:'Los Angeles',menuStatus:'live',adapter:'ucla-dining',dataRoot:'./data/campuses/ucla'},
-  {id:'ucm',name:'UC Merced',shortName:'Merced',city:'Merced',menuStatus:'planned',adapter:'merced-dining',dataRoot:'./data/campuses/ucm'},
+  {id:'ucm',name:'UC Merced',shortName:'Merced',city:'Merced',menuStatus:'live',adapter:'ucm-bigzpoon',dataRoot:'./data/campuses/ucm'},
   {id:'ucr',name:'UC Riverside',shortName:'Riverside',city:'Riverside',menuStatus:'live',adapter:'ucr-foodpro',dataRoot:'./data/campuses/ucr'},
   {id:'ucsd',name:'UC San Diego',shortName:'San Diego',city:'San Diego',menuStatus:'live',adapter:'ucsd-hdh',dataRoot:'./data/campuses/ucsd'},
   {id:'ucsf',name:'UC San Francisco',shortName:'San Francisco',city:'San Francisco',menuStatus:'planned',adapter:'ucsf-dining',dataRoot:'./data/campuses/ucsf'},
