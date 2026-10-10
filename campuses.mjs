@@ -6,7 +6,7 @@ export const UC_CAMPUSES = [
   {id:'ucm',name:'UC Merced',shortName:'Merced',city:'Merced',menuStatus:'live',adapter:'ucm-bigzpoon',dataRoot:'./data/campuses/ucm'},
   {id:'ucr',name:'UC Riverside',shortName:'Riverside',city:'Riverside',menuStatus:'live',adapter:'ucr-foodpro',dataRoot:'./data/campuses/ucr'},
   {id:'ucsd',name:'UC San Diego',shortName:'San Diego',city:'San Diego',menuStatus:'live',adapter:'ucsd-hdh',dataRoot:'./data/campuses/ucsd'},
-  {id:'ucsf',name:'UC San Francisco',shortName:'San Francisco',city:'San Francisco',menuStatus:'planned',adapter:'ucsf-dining',dataRoot:'./data/campuses/ucsf'},
+  {id:'ucsf',name:'UC San Francisco',shortName:'San Francisco',city:'San Francisco',menuStatus:'live',adapter:'ucsf-meal-choice-connect',dataRoot:'./data/campuses/ucsf'},
   {id:'ucsb',name:'UC Santa Barbara',shortName:'Santa Barbara',city:'Santa Barbara',menuStatus:'live',adapter:'ucsb-netnutrition',dataRoot:'./data/campuses/ucsb'},
   {id:'ucsc',name:'UC Santa Cruz',shortName:'Santa Cruz',city:'Santa Cruz',menuStatus:'live',adapter:'ucsc-foodpro',dataRoot:'./data'}
 ];
