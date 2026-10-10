@@ -172,8 +172,11 @@ export function parseItems(html=''){
   return items;
 }
 function classText(html,className){
-  const pattern=new RegExp(`<([a-z0-9]+)\\b[^>]*class=["'][^"']*${escapeRegex(className)}[^"']*["'][^>]*>([\\s\\S]*?)<\\/\\1>`,'i');
-  return text(String(html).match(pattern)?.[2]||'');
+  const tagPattern=/<([a-z0-9]+)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+  for(const match of String(html).matchAll(tagPattern)){
+    if(attr(match[2],'class').split(/\s+/).includes(className))return text(match[3]);
+  }
+  return '';
 }
 function numericToken(value){
   const raw=String(value||'').trim();if(/^</.test(raw))return null;
