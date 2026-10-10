@@ -38,6 +38,7 @@ jobs:
           node --check ucr-menus.mjs
           node --check ucsb-menus.mjs
           node --check ucm-menus.mjs
+          node --check ucsf-menus.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
           node --check scripts/build-ucd-pages.mjs
@@ -46,6 +47,7 @@ jobs:
           node --check scripts/build-ucr-pages.mjs
           node --check scripts/build-ucsb-pages.mjs
           node --check scripts/build-ucm-pages.mjs
+          node --check scripts/build-ucsf-pages.mjs
       - name: Smoke build UC Davis snapshot
         run: node scripts/build-ucd-pages.mjs
       - name: Smoke build UC Irvine snapshot
@@ -58,3 +60,5 @@ jobs:
         run: node scripts/build-ucsb-pages.mjs
       - name: Smoke build UC Merced snapshot
         run: node scripts/build-ucm-pages.mjs
+      - name: Smoke build UCSF snapshot
+        run: node scripts/build-ucsf-pages.mjs
