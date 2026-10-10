@@ -1,0 +1,2586 @@
+{
+  "status": 200,
+  "menu": {
+    "id": 37,
+    "menuTypeId": 37,
+    "name": "PH: Entree Station",
+    "sortSequence": 1,
+    "interfaceCode": null
+  },
+  "meals": [
+    {
+      "mealId": 1,
+      "name": "Breakfast",
+      "shortName": "Breakfast",
+      "microName": "BRK",
+      "startTime": "1899-12-30T05:00:00",
+      "endTime": "1899-12-30T10:45:00",
+      "sortSequence": 1,
+      "isNourishmentMeal": false
+    },
+    {
+      "mealId": 3,
+      "name": "Lunch",
+      "shortName": "Lunch",
+      "microName": "LUN",
+      "startTime": "1899-12-30T10:50:00",
+      "endTime": "1899-12-30T15:00:00",
+      "sortSequence": 2,
+      "isNourishmentMeal": false
+    },
+    {
+      "mealId": 5,
+      "name": "Dinner",
+      "shortName": "Dinner",
+      "microName": "DIN",
+      "startTime": "1899-12-30T15:05:00",
+      "endTime": "1899-12-30T20:00:00",
+      "sortSequence": 3,
+      "isNourishmentMeal": false
+    }
+  ],
+  "dates": [
+    "2026-10-10",
+    "2026-10-11",
+    "2026-10-12",
+    "2026-10-13",
+    "2026-10-14",
+    "2026-10-15",
+    "2026-10-16"
+  ],
+  "body": [
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-11T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 397,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 397,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 460,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 492,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 524,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 574,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 674,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-16T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 311,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 311,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 380,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 414,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 449,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 724,
+              "recipeId": 6818,
+              "recipe": {
+                "id": 6818,
+                "description": "1 Chicken Apple Sausage (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 749,
+              "recipeId": 5551,
+              "recipe": {
+                "id": 5551,
+                "description": "Pork Longanisa (w/oG,DF)",
+                "menuPublishingGroupId": 28,
+                "menuText": "1 sausage",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 774,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 974,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 1074,
+              "recipeId": 490,
+              "recipe": {
+                "id": 490,
+                "description": "Breakfast Potatoes (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 1174,
+              "recipeId": 21257,
+              "recipe": {
+                "id": 21257,
+                "description": "Garlic Fried Rice (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-10T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 397,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 397,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 491,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 585,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 774,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 874,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 974,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-13T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 305,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 305,
+              "recipeId": 491,
+              "recipe": {
+                "id": 491,
+                "description": "Egg & Potato Frittata(V)",
+                "menuPublishingGroupId": 0,
+                "menuText": "Eggs, potatoes, onions, tomatoes, and swiss cheese.",
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 436,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 580,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 652,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 724,
+              "recipeId": 6818,
+              "recipe": {
+                "id": 6818,
+                "description": "1 Chicken Apple Sausage (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 774,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 874,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 974,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 1074,
+              "recipeId": 490,
+              "recipe": {
+                "id": 490,
+                "description": "Breakfast Potatoes (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-11T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 100,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 100,
+              "recipeId": 6205,
+              "recipe": {
+                "id": 6205,
+                "description": "Pasta with Bolognese (S)",
+                "menuPublishingGroupId": 36,
+                "menuText": "Spaghetti noodles served with classic Italian Bolongese.",
+                "menuPublishingGroup": {
+                  "id": 36,
+                  "name": "Chef Table",
+                  "shortName": "Chef Table"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 112,
+              "recipeId": 6223,
+              "recipe": {
+                "id": 6223,
+                "description": "Pasta Marinara Sauce (S,V)",
+                "menuPublishingGroupId": 36,
+                "menuText": "Spaghetti noodles served with homemade marinara sauce.",
+                "menuPublishingGroup": {
+                  "id": 36,
+                  "name": "Chef Table",
+                  "shortName": "Chef Table"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 300,
+              "recipeId": 2864,
+              "recipe": {
+                "id": 2864,
+                "description": "Roasted Herb Chicken",
+                "menuPublishingGroupId": 28,
+                "menuText": "Chicken quarters cooked in our homemade white wine herb sauce.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 400,
+              "recipeId": 3402,
+              "recipe": {
+                "id": 3402,
+                "description": "Garlic Bread",
+                "menuPublishingGroupId": 57,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 57,
+                  "name": "Entree Sides",
+                  "shortName": "Entree Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 500,
+              "recipeId": 5285,
+              "recipe": {
+                "id": 5285,
+                "description": "Jasmine Rice (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 78,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 78,
+                  "name": "Rice & Spice Side",
+                  "shortName": "Rice & Spice Side"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 600,
+              "recipeId": 11864,
+              "recipe": {
+                "id": 11864,
+                "description": "Roasted Broccoli and Cauliflower",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-16T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 25,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 25,
+              "recipeId": 4460,
+              "recipe": {
+                "id": 4460,
+                "description": "Dill Baked Salmon (S,LS)",
+                "menuPublishingGroupId": 28,
+                "menuText": "Atlantic salmon served in a creamy dill sauce.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 50,
+              "recipeId": 18400,
+              "recipe": {
+                "id": 18400,
+                "description": "Chicken Marsala",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 500,
+              "recipeId": 4153,
+              "recipe": {
+                "id": 4153,
+                "description": "Steamed Broccoli (SS,Vg,GF)",
+                "menuPublishingGroupId": 78,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 78,
+                  "name": "Rice & Spice Side",
+                  "shortName": "Rice & Spice Side"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 600,
+              "recipeId": 23011,
+              "recipe": {
+                "id": 23011,
+                "description": "Entree Caesar Salad (V)",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-10T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 214,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 214,
+              "recipeId": 593,
+              "recipe": {
+                "id": 593,
+                "description": "BBQ Chicken",
+                "menuPublishingGroupId": 51,
+                "menuText": "Chicken quarters slow roasted and smothered in our delicious BBQ sauce.",
+                "menuPublishingGroup": {
+                  "id": 51,
+                  "name": "Entree Dinner",
+                  "shortName": "Entree Dinner"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 263,
+              "recipeId": 23132,
+              "recipe": {
+                "id": 23132,
+                "description": "Red Curry Tofu",
+                "menuPublishingGroupId": 11,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 11,
+                  "name": "Entrees",
+                  "shortName": "Entrees"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 312,
+              "recipeId": 22849,
+              "recipe": {
+                "id": 22849,
+                "description": "Blackened Salmon",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 417,
+              "recipeId": 1402,
+              "recipe": {
+                "id": 1402,
+                "description": "Mashed Potatoes",
+                "menuPublishingGroupId": 57,
+                "menuText": "Homemade mashed potatoes with russet potatoes, milk, and butter.",
+                "menuPublishingGroup": {
+                  "id": 57,
+                  "name": "Entree Sides",
+                  "shortName": "Entree Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 423,
+              "recipeId": 5285,
+              "recipe": {
+                "id": 5285,
+                "description": "Jasmine Rice (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 78,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 78,
+                  "name": "Rice & Spice Side",
+                  "shortName": "Rice & Spice Side"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 762,
+              "recipeId": 5710,
+              "recipe": {
+                "id": 5710,
+                "description": "Caribbean Blend",
+                "menuPublishingGroupId": 57,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 57,
+                  "name": "Entree Sides",
+                  "shortName": "Entree Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-13T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 125,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 125,
+              "recipeId": 23545,
+              "recipe": {
+                "id": 23545,
+                "description": "Cheese Enchiladas",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 200,
+              "recipeId": 18513,
+              "recipe": {
+                "id": 18513,
+                "description": "Mexican Rice (Vg)",
+                "menuPublishingGroupId": 46,
+                "menuText": "Rice with garlic,onions, tomatoes, carrots, and peas.",
+                "menuPublishingGroup": {
+                  "id": 46,
+                  "name": "Cocina Verde Sides",
+                  "shortName": "Cocina Verde Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 300,
+              "recipeId": 1985,
+              "recipe": {
+                "id": 1985,
+                "description": "Black Beans",
+                "menuPublishingGroupId": 41,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 41,
+                  "name": "Cocina Verde",
+                  "shortName": "Cocina Verde"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-11T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-16T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-10T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-13T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    },
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-12T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 361,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 361,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 451,
+              "recipeId": 4696,
+              "recipe": {
+                "id": 4696,
+                "description": "Chorizo and Eggs (w/oG,DF)",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 542,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 633,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 724,
+              "recipeId": 6818,
+              "recipe": {
+                "id": 6818,
+                "description": "1 Chicken Apple Sausage (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 774,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 874,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 974,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 1074,
+              "recipeId": 490,
+              "recipe": {
+                "id": 490,
+                "description": "Breakfast Potatoes (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-14T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 286,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 286,
+              "recipeId": 5299,
+              "recipe": {
+                "id": 5299,
+                "description": "Biscuits & Gravy (V)",
+                "menuPublishingGroupId": 28,
+                "menuText": "Two buttermilk biscuits smothered with homestyle pork gravy.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 399,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 561,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 642,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 724,
+              "recipeId": 6818,
+              "recipe": {
+                "id": 6818,
+                "description": "1 Chicken Apple Sausage (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 774,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 874,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 974,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 1074,
+              "recipeId": 490,
+              "recipe": {
+                "id": 490,
+                "description": "Breakfast Potatoes (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 1,
+        "serveDate": "2026-10-15T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 258,
+            "publishingGroup": {
+              "id": 67,
+              "name": "Sunrise Cafe",
+              "shortName": "Sunrise Cafe"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 258,
+              "recipeId": 7714,
+              "recipe": {
+                "id": 7714,
+                "description": "Joe's Special",
+                "menuPublishingGroupId": 28,
+                "menuText": "Eggs, spinach, ground beef, mushrooms, onions, parmesan cheese and seasonings.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 342,
+              "recipeId": 2928,
+              "recipe": {
+                "id": 2928,
+                "description": "Scrambled Eggs (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 561,
+              "recipeId": 1957,
+              "recipe": {
+                "id": 1957,
+                "description": "1 Hard Boiled Egg (w/oG,DF,V)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 642,
+              "recipeId": 21721,
+              "recipe": {
+                "id": 21721,
+                "description": "Impossible Sausage Patty (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 49,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 49,
+                  "name": "Grill Breakfast",
+                  "shortName": "Grill Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 724,
+              "recipeId": 6818,
+              "recipe": {
+                "id": 6818,
+                "description": "1 Chicken Apple Sausage (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 774,
+              "recipeId": 473,
+              "recipe": {
+                "id": 473,
+                "description": "Pork Sausage - 2 links (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 874,
+              "recipeId": 1247,
+              "recipe": {
+                "id": 1247,
+                "description": "Bacon - 2 strips (w/oG,DF)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 974,
+              "recipeId": 839,
+              "recipe": {
+                "id": 839,
+                "description": "Hash Brown - 2pc (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 50,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 50,
+                  "name": "Entree Breakfast",
+                  "shortName": "Entree Breakfast"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 1074,
+              "recipeId": 490,
+              "recipe": {
+                "id": 490,
+                "description": "Breakfast Potatoes (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 67,
+              "menuPublishingGroup": {
+                "id": 67,
+                "name": "Sunrise Cafe",
+                "shortName": "Sunrise Cafe"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-12T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 100,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 100,
+              "recipeId": 21728,
+              "recipe": {
+                "id": 21728,
+                "description": "Parmesan Chicken",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 200,
+              "recipeId": 3670,
+              "recipe": {
+                "id": 3670,
+                "description": "Eggplant Parmesan",
+                "menuPublishingGroupId": 11,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 11,
+                  "name": "Entrees",
+                  "shortName": "Entrees"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 300,
+              "recipeId": 9992,
+              "recipe": {
+                "id": 9992,
+                "description": "Citrus Pepper Tilapia",
+                "menuPublishingGroupId": 28,
+                "menuText": "Baked tilapia served with a lemon peppercorn sauce.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 600,
+              "recipeId": 10197,
+              "recipe": {
+                "id": 10197,
+                "description": "Malibu Blend (SS,Vg,GF)",
+                "menuPublishingGroupId": 57,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 57,
+                  "name": "Entree Sides",
+                  "shortName": "Entree Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 700,
+              "recipeId": 822,
+              "recipe": {
+                "id": 822,
+                "description": "C-Vegetable,Green Beans,Cut,Fzn",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 800,
+              "recipeId": 5285,
+              "recipe": {
+                "id": 5285,
+                "description": "Jasmine Rice (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 78,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 78,
+                  "name": "Rice & Spice Side",
+                  "shortName": "Rice & Spice Side"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-14T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 100,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 100,
+              "recipeId": 1455,
+              "recipe": {
+                "id": 1455,
+                "description": "Fried Chicken",
+                "menuPublishingGroupId": 62,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 62,
+                  "name": "Our Kitchen",
+                  "shortName": "OurKitchen"
+                }
+              },
+              "menuPublishingGroupId": null,
+              "menuPublishingGroup": null,
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 168,
+              "recipeId": 23583,
+              "recipe": {
+                "id": 23583,
+                "description": "Shrimp Creole",
+                "menuPublishingGroupId": 28,
+                "menuText": "Roy's Louisiana style creole.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 187,
+              "recipeId": 1333,
+              "recipe": {
+                "id": 1333,
+                "description": "Collard Greens (Vg)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 200,
+              "recipeId": 906,
+              "recipe": {
+                "id": 906,
+                "description": "Macaroni and Cheese (V)",
+                "menuPublishingGroupId": 28,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 400,
+              "recipeId": 498,
+              "recipe": {
+                "id": 498,
+                "description": "Sweet Potatoes (V,GF)",
+                "menuPublishingGroupId": 28,
+                "menuText": "Sweet potatoes with nutmeg, cinnamon, and a touch of butter.",
+                "menuPublishingGroup": {
+                  "id": 28,
+                  "name": "Entree Station",
+                  "shortName": "Entree Station"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 500,
+              "recipeId": 5815,
+              "recipe": {
+                "id": 5815,
+                "description": "Fried Okra (V)",
+                "menuPublishingGroupId": 0,
+                "menuText": "Breaded fried okra",
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 600,
+              "recipeId": 5285,
+              "recipe": {
+                "id": 5285,
+                "description": "Jasmine Rice (w/oG,DF,V,Vg)",
+                "menuPublishingGroupId": 78,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 78,
+                  "name": "Rice & Spice Side",
+                  "shortName": "Rice & Spice Side"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 3,
+        "serveDate": "2026-10-15T00:00:00"
+      },
+      "guestPublishingGroupItemList": [
+        {
+          "publishingGroup": {
+            "rank": 125,
+            "publishingGroup": {
+              "id": 62,
+              "name": "Our Kitchen",
+              "shortName": "OurKitchen"
+            }
+          },
+          "menuItems": [
+            {
+              "id": 125,
+              "recipeId": 23532,
+              "recipe": {
+                "id": 23532,
+                "description": "Grilled Chicken Huli Huli",
+                "menuPublishingGroupId": 62,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 62,
+                  "name": "Our Kitchen",
+                  "shortName": "OurKitchen"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 200,
+              "recipeId": 20823,
+              "recipe": {
+                "id": 20823,
+                "description": "Honey Sriracha Tofu (V,GF)",
+                "menuPublishingGroupId": 36,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 36,
+                  "name": "Chef Table",
+                  "shortName": "Chef Table"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 250,
+              "recipeId": 23544,
+              "recipe": {
+                "id": 23544,
+                "description": "Beet Poke",
+                "menuPublishingGroupId": 57,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 57,
+                  "name": "Entree Sides",
+                  "shortName": "Entree Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 300,
+              "recipeId": 21831,
+              "recipe": {
+                "id": 21831,
+                "description": "Coconut Rice",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 400,
+              "recipeId": 9552,
+              "recipe": {
+                "id": 9552,
+                "description": "Coleslaw",
+                "menuPublishingGroupId": 0,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 0,
+                  "name": "(Unassigned)",
+                  "shortName": "UNASSIGNED"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            },
+            {
+              "id": 500,
+              "recipeId": 23526,
+              "recipe": {
+                "id": 23526,
+                "description": "Macaroni Salad",
+                "menuPublishingGroupId": 57,
+                "menuText": null,
+                "menuPublishingGroup": {
+                  "id": 57,
+                  "name": "Entree Sides",
+                  "shortName": "Entree Sides"
+                }
+              },
+              "menuPublishingGroupId": 62,
+              "menuPublishingGroup": {
+                "id": 62,
+                "name": "Our Kitchen",
+                "shortName": "OurKitchen"
+              },
+              "calories": null,
+              "roundedCalories": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-12T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-14T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    },
+    {
+      "mealDate": {
+        "mealId": 5,
+        "serveDate": "2026-10-15T00:00:00"
+      },
+      "guestPublishingGroupItemList": []
+    }
+  ]
+}
