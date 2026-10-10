@@ -4,6 +4,9 @@ const UA='UCPlate/0.1 (+https://ucplate.com)';
 const cache=new Map();
 const TTL=10*60*1000;
 const DIET_CODES=new Set(['vg','v','gf','ss','s','ls','l/s','df','w/og']);
+const REQUEST_GAP_MS=250;
+let requestTail=Promise.resolve();
+let lastRequestAt=0;
 
 export const UCSF_LOCATIONS=[
   {id:'ucsf-parnassus',facilityId:'PARN',name:'Moffitt Café',sourceName:'Parnassus Cafe Menu',kind:'restaurant'},
@@ -53,6 +56,9 @@ function stationName(group,item){
   if(inner&&!/^no print|\(unassigned\)$/i.test(inner))return inner;
   return outer||inner||'Menu';
 }
+function dedupeItems(items=[]){
+  const seen=new Set();return items.filter(item=>{const key=`${item.recipeId||item.name}|${item.section}`;if(seen.has(key))return false;seen.add(key);return true;});
+}
 export function parseMenuGroups(groups=[],mealName='Menu'){
   const items=[];
   for(const group of Array.isArray(groups)?groups:[]){
@@ -66,7 +72,7 @@ export function parseMenuGroups(groups=[],mealName='Menu'){
       });
     }
   }
-  const seen=new Set();return items.filter(item=>{const key=`${item.recipeId||item.name}|${item.section}`;if(seen.has(key))return false;seen.add(key);return true;});
+  return dedupeItems(items);
 }
 function nutrientValue(raw,name){
   let found=null;walk(raw,value=>{if(found!=null||!value||typeof value!=='object'||Array.isArray(value))return;const label=clean(value.name??value.nutrientName??value.description??value.label).toLowerCase();if(label.includes(name)){for(const key of ['roundedAmountValue','amountValue','value','amount','nutrientValue']){const parsed=numeric(value[key]);if(parsed!=null){found=parsed;break;}}}});return found;
@@ -77,8 +83,25 @@ function allergensFrom(raw){
   return unique(found).filter(value=>value&&value.length<80);
 }
 async function cached(key,task){const old=cache.get(key);if(old&&Date.now()-old.time<TTL)return old.value;const value=await task();cache.set(key,{time:Date.now(),value});if(cache.size>2000)cache.delete(cache.keys().next().value);return value;}
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function queuedFetch(url,options={}){
+  const run=async()=>{
+    const wait=REQUEST_GAP_MS-(Date.now()-lastRequestAt);if(wait>0)await sleep(wait);
+    let lastResponse=null;
+    for(let attempt=0;attempt<5;attempt++){
+      const response=await fetch(url,{...options,signal:AbortSignal.timeout(30000)});lastResponse=response;lastRequestAt=Date.now();
+      if(response.status!==429)return response;
+      const retryHeader=Number(response.headers.get('retry-after'));
+      const retryMs=Number.isFinite(retryHeader)&&retryHeader>0?retryHeader*1000:1000*(2**attempt);
+      try{await response.arrayBuffer();}catch{}
+      await sleep(Math.min(retryMs,30000));
+    }
+    return lastResponse;
+  };
+  const task=requestTail.then(run,run);requestTail=task.then(()=>undefined,()=>undefined);return task;
+}
 async function requestJson(url,options={}){
-  const response=await fetch(url,{...options,headers:{'User-Agent':UA,'Accept':'application/json',...(options.headers||{})},signal:AbortSignal.timeout(30000)});
+  const response=await queuedFetch(url,{...options,headers:{'User-Agent':UA,'Accept':'application/json',...(options.headers||{})}});
   if(!response.ok){let detail='';try{detail=clean((await response.json())?.message)}catch{}throw new Error(`UCSF menu service returned HTTP ${response.status}${detail?`: ${detail}`:''}.`);}
   return response.json();
 }
@@ -106,20 +129,30 @@ export function publishedSchedule(locationId,date){
   if(locationId==='ucsf-mount-zion')return weekend?[]:[{name:'Open',start:'07:00',end:'14:00'}];
   return [];
 }
-async function mealGroups(location,menuId,mealId,date){return hs(location,'publishingGroups/GuestMenuData',{params:{menuId,mealId,serveDate:date}});}
-async function locationDay(location,date){
-  const schedule=publishedSchedule(location.id,date);
-  if(!schedule.length)return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:'closed',message:'Closed on this date.',source:UCSF_MENU_URL,schedule,meals:[]};
-  const {menus,meals}=await catalog(location),mealMap=new Map();
-  for(const meal of meals){
-    const mealName=clean(meal.name||meal.shortName)||'Menu',combined=[];
+async function locationWeek(location,dates){
+  return cached(`week:${location.facilityId}:${dates.join(',')}`,async()=>{
+    const {menus,meals}=await catalog(location),mealById=new Map(meals.map(meal=>[String(meal.mealId),meal])),byDate=new Map(dates.map(date=>[date,new Map()]));
+    const mealIds=meals.map(meal=>meal.mealId);
     for(const menu of menus){
-      try{const data=await mealGroups(location,menu.id,meal.mealId,date);combined.push(...parseMenuGroups(rows(data,['data','publishingGroups']),mealName));}catch(error){if(!/404|not found/i.test(error.message))throw error;}
+      const data=await hs(location,'publishingGroups/GuestMenuDataPerWeek',{method:'POST',body:{menuId:menu.id,mealIds,serveDates:dates}});
+      for(const entry of rows(data,['data'])){
+        const date=clean(entry?.mealDate?.serveDate).slice(0,10),mealId=String(entry?.mealDate?.mealId??'');
+        if(!byDate.has(date)||!mealById.has(mealId))continue;
+        const meal=mealById.get(mealId),mealName=clean(meal.name||meal.shortName)||'Menu';
+        const items=parseMenuGroups(rows(entry?.guestPublishingGroupItemList,['data','publishingGroups']),mealName);if(!items.length)continue;
+        const dateMeals=byDate.get(date),current=dateMeals.get(mealId)||{name:mealName,start:timePart(meal.startTime),end:timePart(meal.endTime),items:[]};
+        current.items.push(...items);dateMeals.set(mealId,current);
+      }
     }
-    if(combined.length)mealMap.set(mealName,{name:mealName,start:timePart(meal.startTime),end:timePart(meal.endTime),items:combined});
-  }
-  const mealsOut=[...mealMap.values()],status=mealsOut.length?'live':'empty';
-  return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status,message:mealsOut.length?'Menu published through UCSF Meal Choice Connect.':'No itemized café menu is posted for this date.',source:UCSF_MENU_URL,schedule,meals:mealsOut};
+    const output=new Map();
+    for(const date of dates){
+      const schedule=publishedSchedule(location.id,date);
+      if(!schedule.length){output.set(date,{id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:'closed',message:'Closed on this date.',source:UCSF_MENU_URL,schedule,meals:[]});continue;}
+      const mealsOut=[...(byDate.get(date)?.values()||[])].map(meal=>({...meal,items:dedupeItems(meal.items)}));
+      output.set(date,{id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:mealsOut.length?'live':'empty',message:mealsOut.length?'Menu published through UCSF Meal Choice Connect.':'No itemized café menu is posted for this date.',source:UCSF_MENU_URL,schedule,meals:mealsOut});
+    }
+    return output;
+  });
 }
 async function mapLimit(items,fn,limit=6){let index=0;const result=new Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;result[i]=await fn(items[i],i);}}));return result;}
 async function enrichItem(location,item){
@@ -136,12 +169,13 @@ function losAngelesToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Ame
 export async function getAvailableDates(){const today=losAngelesToday(),base=new Date(`${today}T12:00:00Z`);return Array.from({length:7},(_,i)=>{const d=new Date(base);d.setUTCDate(base.getUTCDate()+i);return d.toISOString().slice(0,10);});}
 export async function getDashboard(date){
   if(!validDate(date))throw new Error('Choose a valid UCSF menu date.');const dates=await getAvailableDates();if(!dates.includes(date))throw new Error('UCSF menus are available through the current seven day planning window.');
-  const locations=await mapLimit(UCSF_LOCATIONS,async location=>{try{return await locationDay(location,date)}catch(error){return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:'unavailable',message:error.message,source:UCSF_MENU_URL,schedule:publishedSchedule(location.id,date),meals:[]};}},3);
+  const locations=await mapLimit(UCSF_LOCATIONS,async location=>{try{return (await locationWeek(location,dates)).get(date)}catch(error){return {id:location.id,name:location.name,sourceName:location.sourceName,kind:location.kind,status:'unavailable',message:error.message,source:UCSF_MENU_URL,schedule:publishedSchedule(location.id,date),meals:[]};}},3);
   return {date,locations,availableDates:dates,fetchedAt:new Date().toISOString()};
 }
 export async function getMenu(date,locationId,requestedMeal){
   if(!validDate(date))throw new Error('Choose a valid UCSF menu date.');const location=UCSF_LOCATIONS.find(entry=>entry.id===locationId);if(!location)throw new Error(`Unknown UCSF dining location: ${locationId}`);
-  const day=await locationDay(location,date),meal=day.meals.find(entry=>entry.name.toLowerCase()===String(requestedMeal||'').toLowerCase());if(!meal)throw new Error(`No ${requestedMeal} menu is posted for ${location.name} on ${date}.`);
-  const items=await mapLimit(meal.items,item=>enrichItem(location,item),8);
+  const dates=await getAvailableDates(),day=(await locationWeek(location,dates)).get(date);if(!day)throw new Error(`No UCSF menu is posted for ${date}.`);
+  const meal=day.meals.find(entry=>entry.name.toLowerCase()===String(requestedMeal||'').toLowerCase());if(!meal)throw new Error(`No ${requestedMeal} menu is posted for ${location.name} on ${date}.`);
+  const items=await mapLimit(meal.items,item=>enrichItem(location,item),4);
   return {campusId:'ucsf',adapter:'ucsf-meal-choice-connect',date,id:location.id,name:location.name,kind:location.kind,source:day.source,schedule:day.schedule,meal:meal.name,items,fetchedAt:new Date().toISOString()};
 }
