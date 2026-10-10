@@ -19,19 +19,19 @@ jobs:
           node - <<'NODE'
           import {writeFile} from 'node:fs/promises';
           const base='https://webmenus.ucsfmedicalcenter.org/';
-          const res=await fetch(base,{headers:{'User-Agent':'UCPlate/0.1'}});
-          const html=await res.text();
-          const assets=[...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|json)(?:\?[^"']*)?)["']/gi)].map(m=>new URL(m[1],base).href);
-          const result={status:res.status,url:res.url,html:html.slice(0,30000),assets:[]};
-          for(const url of [...new Set(assets)].slice(0,20)){
-            try{const r=await fetch(url);const text=await r.text();result.assets.push({url,status:r.status,text:text.slice(0,200000)});}catch(error){result.assets.push({url,error:error.message});}
-          }
-          await writeFile('ucsf-probe.json',JSON.stringify(result));
+          const html=await (await fetch(base)).text();
+          const main=html.match(/src=["'](main\.[^"']+\.js)["']/i)?.[1];
+          if(!main)throw new Error('main bundle not found');
+          const js=await (await fetch(new URL(main,base))).text();
+          const strings=[...js.matchAll(/["'`]([^"'`]{1,180})["'`]/g)].map(m=>m[1]);
+          const interesting=[...new Set(strings.filter(s=>/api|menu|facility|recipe|meal|category|nutrition|allergen|date/i.test(s)).filter(s=>s.length<180))].slice(0,1200);
+          const urls=[...new Set([...js.matchAll(/https?:\\?\/?\\?\/?[^"'`\\s)]+/g)].map(m=>m[0]))].slice(0,200);
+          await writeFile('ucsf-probe.json',JSON.stringify({main,interesting,urls},null,2));
           NODE
       - name: Commit probe result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ucsf-probe.json
-          git commit -m "Capture UCSF menu probe" || exit 0
+          git commit -m "Capture UCSF API probe" || exit 0
           git push
