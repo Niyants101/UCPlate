@@ -17,6 +17,10 @@ const marketLate=(friday=['07:00','23:00'],saturday=['09:00','23:00'])=>({
   Saturday:[open(saturday[0],saturday[1])],
   Sunday:[open('09:00','23:59')]
 });
+const ucsbWeekday=[w('Breakfast','07:15','10:00'),w('Lunch','11:00','15:00'),w('Dinner','17:00','20:30')];
+const ucsbWeekend=[w('Brunch','10:00','14:00'),w('Dinner','17:00','20:30')];
+const ucsbDining=()=>week(ucsbWeekday,undefined,undefined,undefined,undefined,ucsbWeekend,ucsbWeekend);
+const ucsbOrtega=week([w('Lunch','10:00','15:00'),w('Dinner','15:00','20:00')],undefined,undefined,undefined,undefined,[],[]);
 export const SERVING_SCHEDULES={
   '40':{
     Monday:weekdayNoLate,
@@ -54,7 +58,11 @@ export const SERVING_SCHEDULES={
   'ucsd-audreys':week([open('08:30','19:00')],undefined,undefined,undefined,[open('08:30','16:00')]),
   'ucsd-rogers-market':marketLate(),
   'ucsd-sixth-market':marketLate(),
-  'ucsd-sunshine-market':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')],[open('10:00','17:00')],[open('10:00','17:00')])
+  'ucsd-sunshine-market':week([open('08:00','21:00')],undefined,undefined,undefined,[open('08:00','21:00')],[open('10:00','17:00')],[open('10:00','17:00')]),
+  'ucsb-carrillo':ucsbDining(),
+  'ucsb-de-la-guerra':ucsbDining(),
+  'ucsb-portola':ucsbDining(),
+  'ucsb-ortega':ucsbOrtega
 };
 for(const id of ['20','25'])for(const day of ['Tuesday','Wednesday','Thursday','Friday'])SERVING_SCHEDULES[id][day]=SERVING_SCHEDULES[id].Monday;
 
