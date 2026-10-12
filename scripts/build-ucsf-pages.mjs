@@ -25,19 +25,37 @@ function chooseCurrentMeal(meals,date){
   return meals[0];
 }
 function sourceOnly(location){return {...location,sourceName:location.name,status:'empty',message:'Official UCSF campus retail dining location. This vendor is outside the UCSF WebMenus nutrition feed, so UCPlate links to the official UCSF retail listing rather than inventing item nutrition.',schedule:null,meals:[],detailPath:null,bulk:null};}
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function dashboardWithRetry(date){
+  let last=null;
+  for(let attempt=0;attempt<3;attempt++){
+    last=await getDashboard(date);
+    const structured=last.locations||[],live=structured.filter(location=>location.status==='live').length,unavailable=structured.filter(location=>location.status==='unavailable').length;
+    if(live||!unavailable)return last;
+    if(attempt<2)await sleep((attempt+1)*1200);
+  }
+  return last;
+}
+async function menuWithRetry(date,locationId,mealName){
+  let error;
+  for(let attempt=0;attempt<2;attempt++){
+    try{return await getMenu(date,locationId,mealName);}catch(caught){error=caught;if(attempt===0)await sleep(700);}
+  }
+  throw error;
+}
 
 const dates=(await getAvailableDates()).filter(date=>date>=today).sort();
 if(!dates.length)throw new Error('UCSF Meal Choice Connect did not expose any menu dates.');
 const generatedDates=new Map(),generatedDetails=new Map();
 
 for(const date of dates){
-  const dashboard=await getDashboard(date),locations=[];
+  const dashboard=await dashboardWithRetry(date),locations=[];
   for(const location of dashboard.locations){
     let enrichedMeals=location.meals||[],detailPath=null,bulk=null;
     if(date===today&&location.status==='live'&&location.meals?.length){
       enrichedMeals=[];
       for(const rawMeal of location.meals){
-        try{const detailed=await getMenu(date,location.id,rawMeal.name);enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items.map(item=>({...item,source:item.source||location.source}))}:rawMeal);}catch{enrichedMeals.push(rawMeal);}
+        try{const detailed=await menuWithRetry(date,location.id,rawMeal.name);enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items.map(item=>({...item,source:item.source||location.source}))}:rawMeal);}catch{enrichedMeals.push(rawMeal);}
       }
       const current=chooseCurrentMeal(enrichedMeals,date);
       if(current)bulk={meal:current.name,mode:'now',status:isDetailed(current)?'live':'unavailable',items:current.items};
