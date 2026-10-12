@@ -50,11 +50,14 @@ for(const campus of UC_CAMPUSES){
     const message=location.status==='unavailable'&&location.message?` | ${location.message}`:'';
     locationSummaries.push(`${location.name}: ${location.status}, ${meals.length} meals, ${locItems} items, nutrition ${pct(locNutrition,locItems)}, veg tags ${pct(locDiet,locItems)}, item links ${pct(locLinks,locItems)}${message}`);
   }
+  const liveCount=(day.locations||[]).filter(x=>x.status==='live').length;
+  const unavailableCount=(day.locations||[]).filter(x=>x.status==='unavailable').length;
   console.log(`\nAUDIT ${campus.id} ${campus.name} ${date}`);
-  console.log(`locations ${(day.locations||[]).length}, live ${(day.locations||[]).filter(x=>x.status==='live').length}, detail locations ${detailLocations}, meals ${totalMeals}, items ${totalItems}`);
+  console.log(`locations ${(day.locations||[]).length}, live ${liveCount}, detail locations ${detailLocations}, meals ${totalMeals}, items ${totalItems}`);
   console.log(`nutrition ${nutritionKnown}/${totalItems} ${pct(nutritionKnown,totalItems)}, veg tags ${dietKnown}/${totalItems} ${pct(dietKnown,totalItems)}, item links ${itemExactLinks}/${totalItems} ${pct(itemExactLinks,totalItems)}, location links ${officialLocationLinks}/${(day.locations||[]).length}`);
   for(const summary of locationSummaries)console.log(`  ${summary}`);
   if(emptyLive){console.log(`  ERROR ${emptyLive} live location(s) had no meals`);hasStructuralFailure=true;}
+  if(date===today&&liveCount===0&&unavailableCount>0){console.log('  ERROR current campus snapshot has no live menus because its upstream source is unavailable');hasStructuralFailure=true;}
 }
 
 if(hasStructuralFailure)process.exitCode=1;
