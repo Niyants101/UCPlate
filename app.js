@@ -123,10 +123,12 @@ function mealTargets(location,mealName){
   const count=Math.max(1,location?.meals?.length||3);
   return {calories:Math.max(250,Math.round(goals.calories/count)),protein:Math.max(10,Math.round(goals.protein/count)),mealCount:count,mealName};
 }
-function nutritionLink(item){
-  const source=item?.nutritionSource||item?.source;
-  if(item?.nutritionStatus==='unavailable')return null;
-  return typeof source==='string'&&/^https?:\/\//i.test(source)?source:null;
+function itemLink(item){
+  const nutrition=item?.nutritionSource;
+  if(typeof nutrition==='string'&&/^https?:\/\//i.test(nutrition))return {href:nutrition,label:'Nutrition ↗',title:'Open official campus nutrition label'};
+  const source=item?.source;
+  if(typeof source==='string'&&/^https?:\/\//i.test(source))return {href:source,label:'Official source ↗',title:'Open official campus menu source'};
+  return null;
 }
 function profileMatches(item,{requireAllergenData=false}={}){
   const p=profile();
@@ -248,9 +250,9 @@ function renderPlateOption(option,index){
     const row=el('div','','plate-part');
     const qty=el('span',quantityLabel(part.quantity),'plate-qty');
     const copy=el('div','','plate-part-copy');
-    const link=nutritionLink(part.item);
-    const name=link?el('a',part.item.name,'plate-food-name'):el('strong',part.item.name,'plate-food-name');
-    if(link){name.href=link;name.target='_blank';name.rel='noreferrer';}
+    const source=itemLink(part.item);
+    const name=source?el('a',part.item.name,'plate-food-name'):el('strong',part.item.name,'plate-food-name');
+    if(source){name.href=source.href;name.target='_blank';name.rel='noreferrer';name.title=source.title;}
     copy.append(name);
     const meta=[];
     if(part.item.serving)meta.push(`base serving: ${part.item.serving}`);
@@ -313,9 +315,9 @@ function renderMenuItems(location){
   for(const [section,foods] of groups){
     const wrap=el('section','','station-section');wrap.append(el('h3',section));const grid=el('div','','station-items');
     foods.forEach(item=>{
-      const row=el('div','','static-food-row'),left=el('div','','food-copy'),link=nutritionLink(item);
-      const name=link?el('a',item.name,'static-food-name'):el('span',item.name,'static-food-name');if(link){name.href=link;name.target='_blank';name.rel='noreferrer';name.title='Open exact campus nutrition label';}left.append(name);
-      const meta=el('div','','food-meta');if(item.serving)meta.append(el('span',item.serving));if(item.calories!==undefined&&item.calories!==null)meta.append(el('span',`${Math.round(Number(item.calories))} kcal`));if(item.protein!==undefined&&item.protein!==null)meta.append(el('span',`${Math.round(Number(item.protein))} g protein`));if(item.diet==='vegan'||item.diet==='vegetarian')meta.append(el('span',item.diet==='vegan'?'Vegan':'Vegetarian',`diet-tag ${item.diet}`));if(link)meta.append(el('span','Nutrition ↗','nutrition-inline'));left.append(meta);row.append(left);grid.append(row);
+      const row=el('div','','static-food-row'),left=el('div','','food-copy'),source=itemLink(item);
+      const name=source?el('a',item.name,'static-food-name'):el('span',item.name,'static-food-name');if(source){name.href=source.href;name.target='_blank';name.rel='noreferrer';name.title=source.title;}left.append(name);
+      const meta=el('div','','food-meta');if(item.serving)meta.append(el('span',item.serving));if(item.calories!==undefined&&item.calories!==null)meta.append(el('span',`${Math.round(Number(item.calories))} kcal`));if(item.protein!==undefined&&item.protein!==null)meta.append(el('span',`${Math.round(Number(item.protein))} g protein`));if(item.diet==='vegan'||item.diet==='vegetarian')meta.append(el('span',item.diet==='vegan'?'Vegan':'Vegetarian',`diet-tag ${item.diet}`));if(source)meta.append(el('span',source.label,'nutrition-inline'));left.append(meta);row.append(left);grid.append(row);
     });wrap.append(grid);root.append(wrap);
   }
 }
