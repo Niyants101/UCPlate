@@ -1,0 +1,21 @@
+name: Campus menu quality audit
+
+on:
+  push:
+    branches:
+      - 'fix/campus-menu-quality-audit'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit generated campus menu data
+        run: node scripts/audit-campus-data.mjs
