@@ -30,8 +30,8 @@ async function dashboardWithRetry(date){
   let last=null;
   for(let attempt=0;attempt<3;attempt++){
     last=await getDashboard(date);
-    const structured=last.locations||[],live=structured.filter(location=>location.status==='live').length,unavailable=structured.filter(location=>location.status==='unavailable').length;
-    if(live||!unavailable)return last;
+    const unavailable=(last.locations||[]).filter(location=>location.status==='unavailable').length;
+    if(!unavailable)return last;
     if(attempt<2)await sleep((attempt+1)*1200);
   }
   return last;
