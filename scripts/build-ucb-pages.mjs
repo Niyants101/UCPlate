@@ -35,7 +35,7 @@ for(const date of dates){
   const dashboard=await getDashboard(date);
   const locations=await mapLimit(dashboard.locations,async location=>{
     let enrichedMeals=location.meals||[],detailPath=null,bulk=null;
-    if(location.status==='live'&&location.meals?.length){
+    if(date===today&&location.status==='live'&&location.meals?.length){
       const previous=await readJSON(new URL(`./details/${date}/${location.id}.json`,dataRoot));
       enrichedMeals=[];
       for(const rawMeal of location.meals){
