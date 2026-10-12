@@ -9,7 +9,7 @@ const detailRoot=new URL('../data/campuses/ucsb/details/',import.meta.url);
 const now=new Date();
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[]}))};}
+function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],source:item.source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||null}))};}
 function isDetailed(meal){return Boolean(meal?.items?.length)&&meal.items.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein));}
 function chooseCurrentMeal(meals,date){
   if(date!==today||!meals?.length)return null;
@@ -28,7 +28,7 @@ for(const date of dates){
   const dashboard=await getDashboard(date);
   const locations=await mapLimit(dashboard.locations,async location=>{
     let enrichedMeals=location.meals||[],detailPath=null,bulk=null;
-    if(date===today&&location.status==='live'&&location.meals?.length){
+    if(location.status==='live'&&location.meals?.length){
       enrichedMeals=[];
       for(const rawMeal of location.meals){
         try{
