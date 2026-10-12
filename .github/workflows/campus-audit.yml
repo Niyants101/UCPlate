@@ -35,3 +35,5 @@ jobs:
         run: node scripts/probe-ucsf.mjs
       - name: Probe current UC Merced metadata
         run: node scripts/probe-ucm.mjs
+      - name: Probe structured UC Irvine retail locations
+        run: node scripts/probe-uci-locations.mjs
