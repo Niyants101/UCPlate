@@ -17,6 +17,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Rebuild Berkeley snapshot
+        run: node scripts/build-ucb-pages.mjs
+      - name: Rebuild Riverside snapshot
+        run: node scripts/build-ucr-pages.mjs
+      - name: Rebuild Santa Barbara snapshot
+        run: node scripts/build-ucsb-pages.mjs
+      - name: Rebuild UCSF snapshot
+        run: node scripts/build-ucsf-pages.mjs
       - name: Audit generated campus menu data
         run: node scripts/audit-campus-data.mjs
       - name: Probe current UCSF source
