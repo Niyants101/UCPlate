@@ -9,8 +9,17 @@ const detailRoot=new URL('../data/campuses/ucm/details/',import.meta.url);
 const now=new Date();
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[]}))};}
-function isDetailed(meal){return Boolean(meal?.items?.length)&&meal.items.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein));}
+function explicitDiet(item){
+  if(item?.diet==='vegan'||item?.diet==='vegetarian')return item.diet;
+  const source=`${item?.name||''} ${item?.description||''}`;
+  if(/\bvegan\b/i.test(source))return 'vegan';
+  if(/\bvegetarian\b/i.test(source))return 'vegetarian';
+  return 'unknown';
+}
+function publicItem(item,source){return {...item,diet:explicitDiet(item),source:item.source||source||null};}
+function shortMeal(meal,source){return {name:meal.name,items:(meal.items||[]).map(item=>{const clean=publicItem(item,source);return {name:clean.name,description:clean.description||'',serving:clean.serving||'',calories:Number.isFinite(clean.calories)?clean.calories:null,protein:Number.isFinite(clean.protein)?clean.protein:null,section:clean.section||'',category:clean.category||'',diet:clean.diet,allergens:clean.allergens||[],source:clean.source};})};}
+function hasPublishedDetails(meal){return Boolean(meal?.items?.length)&&meal.items.some(item=>Number.isFinite(item?.calories)||Number.isFinite(item?.protein)||item?.description||item?.diet==='vegan'||item?.diet==='vegetarian');}
+function hasMacros(meal){return Boolean(meal?.items?.length)&&meal.items.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein));}
 function chooseCurrentMeal(meals,date){
   if(date!==today||!meals?.length)return null;
   const hour=Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',hourCycle:'h23'}).format(now));
@@ -27,23 +36,24 @@ for(const date of dates){
   const dashboard=await getDashboard(date);
   const locations=[];
   for(const location of dashboard.locations){
-    let enrichedMeals=location.meals||[],detailPath=null,bulk=null;
-    if(date===today&&location.status==='live'&&location.meals?.length){
-      enrichedMeals=[];
+    let enrichedMeals=(location.meals||[]).map(meal=>({...meal,items:(meal.items||[]).map(item=>publicItem(item,location.source))})),detailPath=null,bulk=null;
+    if(location.status==='live'&&location.meals?.length){
+      const fetched=[];
       for(const rawMeal of location.meals){
         try{
           const detailed=await getMenu(date,location.id,rawMeal.name);
-          enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items}:rawMeal);
-        }catch{enrichedMeals.push(rawMeal);}
+          fetched.push(detailed.items?.length?{...rawMeal,items:detailed.items.map(item=>publicItem(item,location.source))}:{...rawMeal,items:(rawMeal.items||[]).map(item=>publicItem(item,location.source))});
+        }catch{fetched.push({...rawMeal,items:(rawMeal.items||[]).map(item=>publicItem(item,location.source))});}
       }
+      enrichedMeals=fetched;
       const current=chooseCurrentMeal(enrichedMeals,date);
-      if(current)bulk={meal:current.name,mode:'now',status:isDetailed(current)?'live':'unavailable',items:current.items};
-      if(enrichedMeals.some(isDetailed)){
+      if(current)bulk={meal:current.name,mode:'now',status:hasMacros(current)?'live':'unavailable',items:current.items};
+      if(enrichedMeals.some(hasPublishedDetails)){
         detailPath=`./data/campuses/ucm/details/${date}/${location.id}.json`;
         generatedDetails.set(`${date}/${location.id}`,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,id:location.id,name:location.name,kind:location.kind,source:location.source,schedule:location.schedule,bulk,meals:enrichedMeals});
       }
     }
-    locations.push({id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(shortMeal),detailPath,bulk:bulk?{meal:bulk.meal,mode:bulk.mode,status:bulk.status}:null});
+    locations.push({id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(meal=>shortMeal(meal,location.source)),detailPath,bulk:bulk?{meal:bulk.meal,mode:bulk.mode,status:bulk.status}:null});
   }
   generatedDates.set(date,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,fetchedAt:dashboard.fetchedAt,locations});
 }
