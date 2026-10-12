@@ -32,19 +32,37 @@ function chooseCurrentMeal(meals,date){
 }
 function sourceOnly(location){return {...location,sourceName:location.name,status:'empty',message:'Official UCSB Campus Dining retail location. UCSB does not publish this location through the dining commons NetNutrition feed used for item-level nutrition.',schedule:null,meals:[],detailPath:null,bulk:null};}
 async function mapLimit(items,fn,limit=3){let index=0;const result=new Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;result[i]=await fn(items[i],i);}}));return result;}
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function dashboardWithRetry(date){
+  let last=null;
+  for(let attempt=0;attempt<3;attempt++){
+    last=await getDashboard(date);
+    const structured=last.locations||[],live=structured.filter(location=>location.status==='live').length,unavailable=structured.filter(location=>location.status==='unavailable').length;
+    if(live||!unavailable)return last;
+    if(attempt<2)await sleep((attempt+1)*1500);
+  }
+  return last;
+}
+async function menuWithRetry(date,locationId,mealName){
+  let error;
+  for(let attempt=0;attempt<2;attempt++){
+    try{return await getMenu(date,locationId,mealName);}catch(caught){error=caught;if(attempt===0)await sleep(800);}
+  }
+  throw error;
+}
 
 const dates=(await getAvailableDates()).filter(date=>date>=today).sort().slice(0,8);
 if(!dates.length)throw new Error('UC Santa Barbara Dining did not publish any current or future menu dates.');
 const generatedDates=new Map(),generatedDetails=new Map();
 
 for(const date of dates){
-  const dashboard=await getDashboard(date);
+  const dashboard=await dashboardWithRetry(date);
   const locations=await mapLimit(dashboard.locations,async location=>{
     let enrichedMeals=location.meals||[],detailPath=null,bulk=null;
     if(date===today&&location.status==='live'&&location.meals?.length){
       enrichedMeals=[];
       for(const rawMeal of location.meals){
-        try{const detailed=await getMenu(date,location.id,rawMeal.name);enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items}:rawMeal);}catch{enrichedMeals.push(rawMeal);}
+        try{const detailed=await menuWithRetry(date,location.id,rawMeal.name);enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items}:rawMeal);}catch{enrichedMeals.push(rawMeal);}
       }
       const current=chooseCurrentMeal(enrichedMeals,date);
       if(current)bulk={meal:current.name,mode:'now',status:isDetailed(current)?'live':'unavailable',items:current.items};
