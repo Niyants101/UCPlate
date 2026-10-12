@@ -21,3 +21,5 @@ jobs:
         run: node scripts/audit-campus-data.mjs
       - name: Probe current UCSF source
         run: node scripts/probe-ucsf.mjs
+      - name: Probe current UC Merced metadata
+        run: node scripts/probe-ucm.mjs
