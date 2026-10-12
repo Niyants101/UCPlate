@@ -7,6 +7,7 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const readJson=async path=>JSON.parse(await readFile(resolve(root,path),'utf8'));
 const pct=(n,d)=>d?`${Math.round(n*100/d)}%`:'n/a';
 const isUrl=value=>typeof value==='string'&&/^https:\/\//i.test(value);
+const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 
 let hasStructuralFailure=false;
 for(const campus of UC_CAMPUSES){
@@ -16,7 +17,8 @@ for(const campus of UC_CAMPUSES){
   try{index=await readJson(`${dataRoot}/index.json`);}catch(error){
     console.log(`AUDIT ${campus.id} ERROR missing index: ${error.message}`);hasStructuralFailure=true;continue;
   }
-  const date=[...(index.dates||[])].sort().at(-1);
+  const dates=[...(index.dates||[])].sort();
+  const date=dates.includes(today)?today:dates.at(-1);
   if(!date){console.log(`AUDIT ${campus.id} ERROR no dates`);hasStructuralFailure=true;continue;}
   let day;
   try{day=await readJson(`${dataRoot}/dates/${date}.json`);}catch(error){
@@ -45,7 +47,8 @@ for(const campus of UC_CAMPUSES){
         if(isUrl(item.nutritionSource)||isUrl(item.source)){itemExactLinks++;locLinks++;}
       }
     }
-    locationSummaries.push(`${location.name}: ${location.status}, ${meals.length} meals, ${locItems} items, nutrition ${pct(locNutrition,locItems)}, veg tags ${pct(locDiet,locItems)}, item links ${pct(locLinks,locItems)}`);
+    const message=location.status==='unavailable'&&location.message?` | ${location.message}`:'';
+    locationSummaries.push(`${location.name}: ${location.status}, ${meals.length} meals, ${locItems} items, nutrition ${pct(locNutrition,locItems)}, veg tags ${pct(locDiet,locItems)}, item links ${pct(locLinks,locItems)}${message}`);
   }
   console.log(`\nAUDIT ${campus.id} ${campus.name} ${date}`);
   console.log(`locations ${(day.locations||[]).length}, live ${(day.locations||[]).filter(x=>x.status==='live').length}, detail locations ${detailLocations}, meals ${totalMeals}, items ${totalItems}`);
