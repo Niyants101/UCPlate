@@ -8,6 +8,12 @@ const dateRoot=new URL('../data/campuses/ucsf/dates/',import.meta.url);
 const detailRoot=new URL('../data/campuses/ucsf/details/',import.meta.url);
 const now=new Date();
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+const RETAIL_SOURCE='https://campuslifeserviceshome.ucsf.edu/retail/find-us-your-ucsf-location';
+const RETAIL=[
+  ['ucsf-cafe-bellini','Café Bellini','cafe'],['ucsf-caffe-central-parnassus','Caffé Central at Parnassus','cafe'],['ucsf-carmelinas-taqueria',"Carmelina's Taqueria",'restaurant'],['ucsf-double-shot-express','Double Shot Express','cafe'],['ucsf-jamba','Jamba Juice','cafe'],['ucsf-ladle-leaf','Ladle & Leaf','restaurant'],['ucsf-panda','Panda Express at Parnassus','restaurant'],['ucsf-subway-parnassus','Subway at Parnassus','restaurant'],
+  ['ucsf-caffe-central-mission-bay','Caffé Central at Mission Bay','cafe'],['ucsf-double-shot-coffee','Double Shot Coffee','cafe'],['ucsf-noe-cafe','Noe Cafe','cafe'],['ucsf-peasant-pies','Peasant Pies','restaurant'],['ucsf-publico','Publico','restaurant'],['ucsf-subway-mission-bay','Subway at Mission Bay','restaurant'],['ucsf-sf-kebab','SF Kebab','restaurant'],
+  ['ucsf-carmelinas-cafe',"Carmelina's Cafe",'cafe'],['ucsf-daily-grind','The Daily Grind at Mount Zion','cafe']
+].map(([id,name,kind])=>({id,name,kind,source:RETAIL_SOURCE}));
 
 function shortMeal(meal,source){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],glutenFree:Boolean(item.glutenFree),source:item.source||source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||null}))};}
 function isDetailed(meal){return Boolean(meal?.items?.length)&&meal.items.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein));}
@@ -18,6 +24,7 @@ function chooseCurrentMeal(meals,date){
   for(const pattern of patterns){const found=meals.find(meal=>pattern.test(meal.name));if(found)return found;}
   return meals[0];
 }
+function sourceOnly(location){return {...location,sourceName:location.name,status:'empty',message:'Official UCSF campus retail dining location. This vendor is outside the UCSF WebMenus nutrition feed, so UCPlate links to the official UCSF retail listing rather than inventing item nutrition.',schedule:null,meals:[],detailPath:null,bulk:null};}
 
 const dates=(await getAvailableDates()).filter(date=>date>=today).sort();
 if(!dates.length)throw new Error('UCSF Meal Choice Connect did not expose any menu dates.');
@@ -30,10 +37,7 @@ for(const date of dates){
     if(date===today&&location.status==='live'&&location.meals?.length){
       enrichedMeals=[];
       for(const rawMeal of location.meals){
-        try{
-          const detailed=await getMenu(date,location.id,rawMeal.name);
-          enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items.map(item=>({...item,source:item.source||location.source}))}:rawMeal);
-        }catch{enrichedMeals.push(rawMeal);}
+        try{const detailed=await getMenu(date,location.id,rawMeal.name);enrichedMeals.push(detailed.items?.length?{...rawMeal,items:detailed.items.map(item=>({...item,source:item.source||location.source}))}:rawMeal);}catch{enrichedMeals.push(rawMeal);}
       }
       const current=chooseCurrentMeal(enrichedMeals,date);
       if(current)bulk={meal:current.name,mode:'now',status:isDetailed(current)?'live':'unavailable',items:current.items};
@@ -44,6 +48,7 @@ for(const date of dates){
     }
     locations.push({id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(meal=>shortMeal(meal,location.source)),detailPath,bulk:bulk?{meal:bulk.meal,mode:bulk.mode,status:bulk.status}:null});
   }
+  locations.push(...RETAIL.map(sourceOnly));
   generatedDates.set(date,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,fetchedAt:dashboard.fetchedAt,locations});
 }
 
