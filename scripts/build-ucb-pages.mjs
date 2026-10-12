@@ -17,7 +17,7 @@ function sameMenu(a,b){
 function isDetailed(meal){
   return Boolean(meal?.items?.length)&&meal.items.every(item=>item?.nutritionStatus==='available'||item?.nutritionStatus==='unavailable')&&meal.items.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein));
 }
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown'}))};}
+function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],source:item.source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||null}))};}
 function hourInPacific(){return Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',hourCycle:'h23'}).format(now));}
 function chooseCurrentMeal(meals,date){
   if(date!==today||!meals?.length)return null;
@@ -35,7 +35,7 @@ for(const date of dates){
   const dashboard=await getDashboard(date);
   const locations=await mapLimit(dashboard.locations,async location=>{
     let enrichedMeals=location.meals||[],detailPath=null,bulk=null;
-    if(date===today&&location.status==='live'&&location.meals?.length){
+    if(location.status==='live'&&location.meals?.length){
       const previous=await readJSON(new URL(`./details/${date}/${location.id}.json`,dataRoot));
       enrichedMeals=[];
       for(const rawMeal of location.meals){
