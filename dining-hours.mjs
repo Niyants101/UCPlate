@@ -21,6 +21,9 @@ const ucsbWeekday=[w('Breakfast','07:15','10:00'),w('Lunch','11:00','15:00'),w('
 const ucsbWeekend=[w('Brunch','10:00','14:00'),w('Dinner','17:00','20:30')];
 const ucsbDining=()=>week(ucsbWeekday,undefined,undefined,undefined,undefined,ucsbWeekend,ucsbWeekend);
 const ucsbOrtega=week([w('Lunch','10:00','15:00'),w('Dinner','15:00','20:00')],undefined,undefined,undefined,undefined,[],[]);
+const ucmPavilionWeekday=[w('Breakfast','07:00','10:00'),w('Lunch','11:00','15:00'),w('Dinner','16:00','21:00')];
+const ucmPavilionWeekend=[w('Breakfast','09:00','10:30'),w('Lunch','11:00','15:00'),w('Dinner','16:00','21:00')];
+const ucmYwdcWeekday=[w('Lunch','10:00','14:00'),w('Dinner','15:00','20:00'),w('Late Night','21:00','24:00')];
 export const SERVING_SCHEDULES={
   '40':{
     Monday:weekdayNoLate,
@@ -62,7 +65,9 @@ export const SERVING_SCHEDULES={
   'ucsb-carrillo':ucsbDining(),
   'ucsb-de-la-guerra':ucsbDining(),
   'ucsb-portola':ucsbDining(),
-  'ucsb-ortega':ucsbOrtega
+  'ucsb-ortega':ucsbOrtega,
+  'ucm-pavilion':week(ucmPavilionWeekday,undefined,undefined,undefined,undefined,ucmPavilionWeekend,ucmPavilionWeekend),
+  'ucm-ywdc':week(ucmYwdcWeekday,undefined,undefined,undefined,undefined,[],[])
 };
 for(const id of ['20','25'])for(const day of ['Tuesday','Wednesday','Thursday','Friday'])SERVING_SCHEDULES[id][day]=SERVING_SCHEDULES[id].Monday;
 
