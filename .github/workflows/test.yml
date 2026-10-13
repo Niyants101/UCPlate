@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'feature/**'
+      - 'fix/**'
   pull_request:
 
 permissions:
@@ -39,6 +40,8 @@ jobs:
           node --check ucsb-menus.mjs
           node --check ucm-menus.mjs
           node --check ucsf-menus.mjs
+          node --check scripts/build-campus-snapshot.mjs
+          node --check scripts/audit-campus-snapshots.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
           node --check scripts/build-ucd-pages.mjs
@@ -48,17 +51,25 @@ jobs:
           node --check scripts/build-ucsb-pages.mjs
           node --check scripts/build-ucm-pages.mjs
           node --check scripts/build-ucsf-pages.mjs
+      - name: Smoke build UC Santa Cruz snapshot
+        run: node scripts/build-pages.mjs
+      - name: Smoke build UC Berkeley snapshot
+        run: node scripts/build-ucb-pages.mjs
       - name: Smoke build UC Davis snapshot
         run: node scripts/build-ucd-pages.mjs
       - name: Smoke build UC Irvine snapshot
         run: node scripts/build-uci-pages.mjs
       - name: Smoke build UCLA snapshot
         run: node scripts/build-ucla-pages.mjs
+      - name: Smoke build UC Merced snapshot
+        run: node scripts/build-ucm-pages.mjs
       - name: Smoke build UC Riverside snapshot
         run: node scripts/build-ucr-pages.mjs
       - name: Smoke build UC Santa Barbara snapshot
         run: node scripts/build-ucsb-pages.mjs
-      - name: Smoke build UC Merced snapshot
-        run: node scripts/build-ucm-pages.mjs
+      - name: Smoke build UC San Diego snapshot
+        run: node scripts/build-ucsd-pages.mjs
       - name: Smoke build UCSF snapshot
         run: node scripts/build-ucsf-pages.mjs
+      - name: Audit all campus snapshots
+        run: node scripts/audit-campus-snapshots.mjs
