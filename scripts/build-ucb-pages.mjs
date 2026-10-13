@@ -17,7 +17,8 @@ function sameMenu(a,b){
 function isDetailed(meal){
   return Boolean(meal?.items?.length)&&meal.items.every(item=>item?.nutritionStatus==='available'||item?.nutritionStatus==='unavailable')&&meal.items.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein));
 }
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown'}))};}
+function hasPostedItems(meals){return (meals||[]).some(meal=>meal?.items?.length);}
+function shortMeal(meal,source){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],serving:item.serving||null,calories:Number.isFinite(item.calories)?item.calories:null,protein:Number.isFinite(item.protein)?item.protein:null,source:item.source||item.nutritionSource||source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||'unavailable'}))};}
 function hourInPacific(){return Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',hourCycle:'h23'}).format(now));}
 function chooseCurrentMeal(meals,date){
   if(date!==today||!meals?.length)return null;
@@ -27,7 +28,7 @@ function chooseCurrentMeal(meals,date){
 }
 async function mapLimit(items,fn,limit=2){let index=0;const result=new Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;result[i]=await fn(items[i],i);}}));return result;}
 
-const dates=(await getAvailableDates()).filter(date=>date>=today).sort();
+const dates=(await getAvailableDates()).filter(date=>date>=today).sort().slice(0,8);
 if(!dates.length)throw new Error('UC Berkeley Dining did not publish any current or future menu dates.');
 const generatedDates=new Map(),generatedDetails=new Map();
 
@@ -40,7 +41,7 @@ for(const date of dates){
       enrichedMeals=[];
       for(const rawMeal of location.meals){
         const oldMeal=previous?.meals?.find(meal=>meal.name===rawMeal.name);
-        if(sameMenu(oldMeal,rawMeal)&&isDetailed(oldMeal)){
+        if(sameMenu(oldMeal,rawMeal)&&oldMeal?.items?.length){
           enrichedMeals.push({...rawMeal,items:oldMeal.items});
           continue;
         }
@@ -53,12 +54,12 @@ for(const date of dates){
       }
       const current=chooseCurrentMeal(enrichedMeals,date);
       if(current)bulk={meal:current.name,mode:'now',status:isDetailed(current)?'live':'unavailable',items:current.items};
-      if(enrichedMeals.some(isDetailed)){
+      if(hasPostedItems(enrichedMeals)){
         detailPath=`./data/campuses/ucb/details/${date}/${location.id}.json`;
         generatedDetails.set(`${date}/${location.id}`,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,id:location.id,name:location.name,kind:location.kind,source:location.source,schedule:location.schedule,bulk,meals:enrichedMeals});
       }
     }
-    return {id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(shortMeal),detailPath,bulk:bulk?{meal:bulk.meal,mode:bulk.mode,status:bulk.status}:null};
+    return {id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(meal=>shortMeal(meal,location.source)),detailPath,bulk:bulk?{meal:bulk.meal,mode:bulk.mode,status:bulk.status}:null};
   },2);
   generatedDates.set(date,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,fetchedAt:dashboard.fetchedAt,locations});
 }
@@ -67,7 +68,7 @@ await rm(dateRoot,{recursive:true,force:true});
 await rm(detailRoot,{recursive:true,force:true});
 await mkdir(dateRoot,{recursive:true});
 await mkdir(detailRoot,{recursive:true});
-await writeFile(new URL('./index.json',dataRoot),JSON.stringify({version:1,campusId:CAMPUS_ID,adapter:ADAPTER_ID,generatedAt:new Date().toISOString(),timezone:'America/Los_Angeles',dates}));
+await writeFile(new URL('./index.json',dataRoot),JSON.stringify({version:2,campusId:CAMPUS_ID,adapter:ADAPTER_ID,generatedAt:new Date().toISOString(),timezone:'America/Los_Angeles',dates}));
 for(const [date,day] of generatedDates)await writeFile(new URL(`./${date}.json`,dateRoot),JSON.stringify(day));
 for(const [key,detail] of generatedDetails){const [date,id]=key.split('/');const folder=new URL(`./${date}/`,detailRoot);await mkdir(folder,{recursive:true});await writeFile(new URL(`./${id}.json`,folder),JSON.stringify(detail));}
-console.log(`Built UCPlate ${CAMPUS_ID} snapshot for ${dates.length} posted date(s), ${generatedDates.get(dates[0])?.locations.length||0} locations, and ${generatedDetails.size} nutrition detail file(s).`);
+console.log(`Built UCPlate ${CAMPUS_ID} snapshot for ${dates.length} posted date(s), ${generatedDates.get(dates[0])?.locations.length||0} locations, and ${generatedDetails.size} browsable detail file(s).`);
