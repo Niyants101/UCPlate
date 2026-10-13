@@ -4,6 +4,7 @@ const CAMPUS_ROOTS=['ucb','ucd','uci','ucla','ucm','ucr','ucsb','ucsd','ucsf'];
 const allowedDiet=new Set(['unknown','vegetarian','vegan']);
 const validUrl=value=>typeof value==='string'&&/^https?:\/\//i.test(value);
 const finiteOrNull=value=>value===null||value===undefined||(Number.isFinite(Number(value))&&Number(value)>=0);
+const publishedNumber=value=>value!==null&&value!==undefined&&String(value).trim()!==''&&Number.isFinite(Number(value));
 
 async function json(path){return JSON.parse(await readFile(new URL(`../${path}`,import.meta.url),'utf8'));}
 async function exists(path){try{await access(new URL(`../${path}`,import.meta.url));return true;}catch{return false;}}
@@ -15,9 +16,8 @@ function fail(campus,message){failures++;console.error(`[${campus}] ${message}`)
 for(const campus of CAMPUS_ROOTS){
   const index=await json(`data/campuses/${campus}/index.json`);
   if(!Array.isArray(index.dates)||!index.dates.length){fail(campus,'index has no menu dates');continue;}
-  const date=index.dates.includes(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()))
-    ? new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
-    : index.dates[0];
+  const current=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const date=index.dates.includes(current)?current:index.dates[0];
   const day=await json(`data/campuses/${campus}/dates/${date}.json`);
   const live=(day.locations||[]).filter(location=>location.status==='live');
   if(!live.length)fail(campus,`no live locations on audited date ${date}`);
@@ -43,7 +43,7 @@ for(const campus of CAMPUS_ROOTS){
         if(!allowedDiet.has(item.diet||'unknown'))fail(campus,`${item.name} has unsupported diet tag ${item.diet}`);
         if(item.diet==='vegan'||item.diet==='vegetarian')dietTagged++;
         if(!finiteOrNull(item.calories)||!finiteOrNull(item.protein))fail(campus,`${item.name} has invalid nutrition numbers`);
-        if(Number.isFinite(Number(item.calories))&&Number.isFinite(Number(item.protein)))nutritionPairs++;
+        if(publishedNumber(item.calories)&&publishedNumber(item.protein))nutritionPairs++;
         const exact=validUrl(item.nutritionSource)||validUrl(item.source);
         const fallback=validUrl(location.source);
         if(exact)exactSources++;
