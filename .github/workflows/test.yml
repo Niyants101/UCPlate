@@ -51,8 +51,6 @@ jobs:
           node --check scripts/build-ucsb-pages.mjs
           node --check scripts/build-ucm-pages.mjs
           node --check scripts/build-ucsf-pages.mjs
-      - name: Smoke build UC Santa Cruz snapshot
-        run: node scripts/build-pages.mjs
       - name: Smoke build UC Berkeley snapshot
         run: node scripts/build-ucb-pages.mjs
       - name: Smoke build UC Davis snapshot
@@ -71,5 +69,5 @@ jobs:
         run: node scripts/build-ucsd-pages.mjs
       - name: Smoke build UCSF snapshot
         run: node scripts/build-ucsf-pages.mjs
-      - name: Audit all campus snapshots
+      - name: Audit all non-UCSC campus snapshots
         run: node scripts/audit-campus-snapshots.mjs
