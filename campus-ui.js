@@ -25,18 +25,28 @@ const clean=value=>String(value||'').trim().toLowerCase().replace(/\s+/g,' ');
 let sourceEnhanceTimer=null;
 let sourceEnhanceKey='';
 let sourceEnhanceData=null;
+let dayEnhanceKey='';
+let dayEnhanceData=null;
 
-async function sourceContext(){
+async function dayContext(){
   const date=document.getElementById('menuDate')?.value;
-  const hall=document.getElementById('hall')?.value;
-  const meal=document.getElementById('menuMeal')?.value;
   const root=campusDataRoot(campusId);
-  if(!date||!hall||!meal||!root)return null;
-  const key=`${campusId}:${date}:${hall}:${meal}`;
-  if(key===sourceEnhanceKey&&sourceEnhanceData)return sourceEnhanceData;
+  if(!date||!root)return null;
+  const key=`${campusId}:${date}`;
+  if(key===dayEnhanceKey&&dayEnhanceData)return dayEnhanceData;
   const response=await fetch(`${root}/dates/${date}.json`);
   if(!response.ok)return null;
-  const day=await response.json(),location=day.locations?.find(entry=>entry.id===hall);
+  dayEnhanceKey=key;dayEnhanceData=await response.json();return dayEnhanceData;
+}
+
+async function sourceContext(){
+  const hall=document.getElementById('hall')?.value;
+  const meal=document.getElementById('menuMeal')?.value;
+  const day=await dayContext();
+  if(!hall||!meal||!day)return null;
+  const key=`${dayEnhanceKey}:${hall}:${meal}`;
+  if(key===sourceEnhanceKey&&sourceEnhanceData)return sourceEnhanceData;
+  const location=day.locations?.find(entry=>entry.id===hall);
   if(!location)return null;
   let sourceLocation=location;
   if(location.detailPath){
@@ -91,15 +101,31 @@ async function enhanceFoodSources(){
   }
 }
 
-function scheduleSourceEnhance(){
-  clearTimeout(sourceEnhanceTimer);
-  sourceEnhanceTimer=setTimeout(()=>enhanceFoodSources().catch(()=>{}),40);
+async function enhanceOverviewLabels(){
+  if(!campusId||campusId==='ucsc')return;
+  const day=await dayContext();if(!day)return;
+  for(const card of document.querySelectorAll('#diningOverview .dining-card')){
+    const name=clean(card.querySelector('.card-top strong')?.textContent);
+    const location=day.locations?.find(entry=>clean(entry.name)===name);
+    if(!location?.detailPath)continue;
+    const small=[...card.querySelectorAll('small')].find(node=>node.textContent==='Personalized plates available');
+    if(small&&location.bulk?.status!=='live')small.textContent='Full official menu available';
+  }
 }
 
-const foodRoots=[document.getElementById('menuItems'),document.getElementById('bulkPlan')].filter(Boolean);
-if(foodRoots.length){
+function scheduleSourceEnhance(){
+  clearTimeout(sourceEnhanceTimer);
+  sourceEnhanceTimer=setTimeout(()=>Promise.all([enhanceFoodSources(),enhanceOverviewLabels()]).catch(()=>{}),40);
+}
+
+const roots=[document.getElementById('menuItems'),document.getElementById('bulkPlan'),document.getElementById('diningOverview')].filter(Boolean);
+if(roots.length){
   const observer=new MutationObserver(scheduleSourceEnhance);
-  for(const root of foodRoots)observer.observe(root,{childList:true,subtree:true});
-  for(const id of ['menuDate','hall','menuMeal'])document.getElementById(id)?.addEventListener('change',()=>{sourceEnhanceKey='';sourceEnhanceData=null;scheduleSourceEnhance();});
+  for(const root of roots)observer.observe(root,{childList:true,subtree:true});
+  for(const id of ['menuDate','hall','menuMeal'])document.getElementById(id)?.addEventListener('change',()=>{
+    sourceEnhanceKey='';sourceEnhanceData=null;
+    if(id==='menuDate'){dayEnhanceKey='';dayEnhanceData=null;}
+    scheduleSourceEnhance();
+  });
   scheduleSourceEnhance();
 }
