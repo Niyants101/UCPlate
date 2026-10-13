@@ -22,6 +22,7 @@ if(document.documentElement.dataset.requiresLiveCampus==='true'&&prefs.onboardin
 
 const validSource=value=>typeof value==='string'&&/^https?:\/\//i.test(value)?value:null;
 const clean=value=>String(value||'').trim().toLowerCase().replace(/\s+/g,' ');
+const finiteNutrition=value=>value!==null&&value!==undefined&&String(value).trim()!==''&&Number.isFinite(Number(value));
 const UCSF_OFFICIAL_PAGES={
   'ucsf-parnassus':'https://nutrition.ucsf.edu/parnassus-heights',
   'ucsf-mission-bay':'https://nutrition.ucsf.edu/mission-bay',
@@ -192,9 +193,25 @@ async function enhanceOverviewLabels(){
   }
 }
 
+async function enhancePlannerStatus(){
+  if(campusId!=='ucm')return;
+  const context=await sourceContext();if(!context?.meal)return;
+  const items=context.meal.items||[];
+  if(items.some(item=>finiteNutrition(item.calories)&&finiteNutrition(item.protein)))return;
+  const subtitle=document.getElementById('bulkSubtitle');
+  if(subtitle&&/still being indexed|pulling the posted nutrition labels/i.test(subtitle.textContent||'')){
+    const date=document.getElementById('menuDate')?.value||'';
+    subtitle.textContent=`The UC Merced menu is published${date?` for ${date}`:''}, but its current BigZpoon data does not include enough protein values for protein-targeted plates.`;
+  }
+  const empty=document.querySelector('#bulkPlan .menu-empty');
+  if(empty&&/next menu refresh|nutrition labels|personalized plates/i.test(empty.textContent||'')){
+    empty.textContent='UCPlate will not estimate missing protein. The full official menu is available below, and personalized plates will appear when the published data includes the nutrition values required for your target.';
+  }
+}
+
 function scheduleSourceEnhance(){
   clearTimeout(sourceEnhanceTimer);
-  sourceEnhanceTimer=setTimeout(()=>Promise.all([enhanceFoodSources(),enhanceOverviewLabels()]).catch(()=>{}),40);
+  sourceEnhanceTimer=setTimeout(()=>Promise.all([enhanceFoodSources(),enhanceOverviewLabels(),enhancePlannerStatus()]).catch(()=>{}),40);
 }
 
 const roots=[document.getElementById('menuItems'),document.getElementById('bulkPlan'),document.getElementById('diningOverview')].filter(Boolean);
