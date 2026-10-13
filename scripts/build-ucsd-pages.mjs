@@ -15,7 +15,8 @@ function sameMenu(a,b){
   return (a.items||[]).every((item,index)=>item.name===b.items[index]?.name&&item.source===b.items[index]?.source);
 }
 function isDetailed(meal){return meal?.items?.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein)&&typeof item?.nutritionSource==='string');}
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown'}))};}
+function hasPostedItems(meals){return (meals||[]).some(meal=>meal?.items?.length);}
+function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],source:item.source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||'unavailable'}))};}
 function hourInPacific(){
   return Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'2-digit',hourCycle:'h23'}).format(now));
 }
@@ -53,7 +54,7 @@ for(const date of dates){
       }
       const current=chooseCurrentMeal(enrichedMeals,date);
       if(current)bulk={meal:current.name,mode:'now',status:isDetailed(current)?'live':'unavailable',items:current.items};
-      if(enrichedMeals.some(isDetailed)){
+      if(hasPostedItems(enrichedMeals)){
         detailPath=`./data/campuses/ucsd/details/${date}/${location.id}.json`;
         generatedDetails.set(`${date}/${location.id}`,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,id:location.id,name:location.name,kind:location.kind,source:location.source,schedule:location.schedule,bulk,meals:enrichedMeals});
       }
@@ -67,7 +68,7 @@ await rm(dateRoot,{recursive:true,force:true});
 await rm(detailRoot,{recursive:true,force:true});
 await mkdir(dateRoot,{recursive:true});
 await mkdir(detailRoot,{recursive:true});
-await writeFile(new URL('./index.json',dataRoot),JSON.stringify({version:1,campusId:CAMPUS_ID,adapter:ADAPTER_ID,generatedAt:new Date().toISOString(),timezone:'America/Los_Angeles',dates}));
+await writeFile(new URL('./index.json',dataRoot),JSON.stringify({version:2,campusId:CAMPUS_ID,adapter:ADAPTER_ID,generatedAt:new Date().toISOString(),timezone:'America/Los_Angeles',dates}));
 for(const [date,day] of generatedDates)await writeFile(new URL(`./${date}.json`,dateRoot),JSON.stringify(day));
 for(const [key,detail] of generatedDetails){const [date,id]=key.split('/');const folder=new URL(`./${date}/`,detailRoot);await mkdir(folder,{recursive:true});await writeFile(new URL(`./${id}.json`,folder),JSON.stringify(detail));}
-console.log(`Built UCPlate ${CAMPUS_ID} snapshot for ${dates.length} posted date(s), ${generatedDates.get(dates[0])?.locations.length||0} locations, and ${generatedDetails.size} nutrition detail file(s).`);
+console.log(`Built UCPlate ${CAMPUS_ID} snapshot for ${dates.length} posted date(s), ${generatedDates.get(dates[0])?.locations.length||0} locations, and ${generatedDetails.size} browsable detail file(s).`);
