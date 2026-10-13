@@ -22,16 +22,18 @@ if(process.env.CI){
         const item=(Array.isArray(items)?items:items?.menuItems||[]).find(row=>row?._id||row?.id);
         if(item){
           console.log('UCM_DIAGNOSTIC_ITEM_KEYS',Object.keys(item).sort().join(','));
+          console.log('UCM_DIAGNOSTIC_ITEM_CALORIES',JSON.stringify(item.caloriesInfo??null));
           const itemId=item._id||item.id;
           const response=await fetch(`${API}/raw-materials`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({menuId:itemId,fdaRounding:true,allergyIds:[],lifestyleChoiceIds:[],nutritionGoals:[],preferenceApplyStatus:false,skipCommonIngredients:[],locationId:location})});
           const body=await response.json();
           const raw=body?.data;
           console.log('UCM_DIAGNOSTIC_RAW_TYPE',Array.isArray(raw)?'array':typeof raw);
           console.log('UCM_DIAGNOSTIC_RAW_KEYS',Array.isArray(raw)&&raw[0]?Object.keys(raw[0]).sort().join(','):raw&&typeof raw==='object'?Object.keys(raw).sort().join(','):'none');
-          if(raw&&typeof raw==='object'){
-            const text=JSON.stringify(raw);
-            const nutritionTerms=[...new Set((text.match(/protein|nutri[a-z]*|calorie|serving|allerg[a-z]*/gi)||[]).map(term=>term.toLowerCase()))];
-            console.log('UCM_DIAGNOSTIC_NUTRITION_TERMS',nutritionTerms.join(','));
+          const sample=Array.isArray(raw)?raw.find(entry=>entry?.nutritionInfo)||raw[0]:raw;
+          if(sample){
+            console.log('UCM_DIAGNOSTIC_NUTRITIONINFO_TYPE',Array.isArray(sample.nutritionInfo)?'array':typeof sample.nutritionInfo);
+            console.log('UCM_DIAGNOSTIC_NUTRITIONINFO',JSON.stringify(sample.nutritionInfo??null).slice(0,7000));
+            console.log('UCM_DIAGNOSTIC_SERVING',JSON.stringify(sample.servingSizeValue??null));
           }
         }
       }
