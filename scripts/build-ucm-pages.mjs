@@ -24,22 +24,22 @@ if(process.env.CI){
     if(group){
       const groupId=group._id||group.id;
       const categories=await read(`${API}/menucategories?initialCall=menuGroup&locationId=${location}&menuGroupIds=${groupId}`);
-      const category=(Array.isArray(categories)?categories:categories?.menuCategories||categories?.categories||[]).find(row=>row?._id||row?.id);
-      if(category){
-        const prefs=encodeURIComponent(JSON.stringify({allergies:[],lifestyleChoices:[],medicalGoals:[],preferenceApplyStatus:false,crossContactStatus:true}));
-        const items=await read(`${API}/menuitems?categoryId=${category._id||category.id}&isPreview=false&locationId=${location}&menuGroupId=${groupId}&userPreferences=${prefs}`);
-        const item=(Array.isArray(items)?items:items?.menuItems||[]).find(row=>row?._id||row?.id);
-        if(item){
-          console.log('UCM_DIAGNOSTIC_ITEM',item.name||null,JSON.stringify(item.caloriesInfo??null));
-          const itemId=item._id||item.id;
-          const response=await fetch(`${API}/raw-materials`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({menuId:itemId,fdaRounding:true,allergyIds:[],lifestyleChoiceIds:[],nutritionGoals:[],preferenceApplyStatus:false,skipCommonIngredients:[],locationId:location})});
-          const body=await response.json();
-          const raw=body?.data;
-          const records=findNutritionRecords(raw);
-          console.log('UCM_DIAGNOSTIC_POPULATED_COUNT',records.length);
-          records.forEach((record,index)=>console.log(`UCM_DIAGNOSTIC_RECORD_${index}`,JSON.stringify(record).slice(0,7000)));
-          console.log('UCM_DIAGNOSTIC_RAW_SAMPLE',JSON.stringify(Array.isArray(raw)?raw.slice(0,2):raw).slice(0,9000));
-        }
+      const categoryList=Array.isArray(categories)?categories:categories?.menuCategories||categories?.categories||[];
+      const prefs=encodeURIComponent(JSON.stringify({allergies:[],lifestyleChoices:[],medicalGoals:[],preferenceApplyStatus:false,crossContactStatus:true}));
+      const candidates=[];
+      for(const category of categoryList.slice(0,8)){
+        const categoryId=category?._id||category?.id;if(!categoryId)continue;
+        const items=await read(`${API}/menuitems?categoryId=${categoryId}&isPreview=false&locationId=${location}&menuGroupId=${groupId}&userPreferences=${prefs}`);
+        for(const item of Array.isArray(items)?items:items?.menuItems||[])if((item?._id||item?.id)&&!candidates.some(existing=>(existing._id||existing.id)===(item._id||item.id)))candidates.push(item);
+        if(candidates.length>=12)break;
+      }
+      for(const item of candidates.slice(0,12)){
+        const itemId=item._id||item.id;
+        const response=await fetch(`${API}/raw-materials`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({menuId:itemId,fdaRounding:true,allergyIds:[],lifestyleChoiceIds:[],nutritionGoals:[],preferenceApplyStatus:false,skipCommonIngredients:[],locationId:location})});
+        const body=await response.json();const raw=body?.data;const records=findNutritionRecords(raw);
+        const summary={name:item.name||null,calories:item.caloriesInfo??null,rawCount:Array.isArray(raw)?raw.length:null,nutritionRecords:records.length,rawNames:Array.isArray(raw)?raw.slice(0,5).map(entry=>entry?.name||entry?.rawMaterials||null):[]};
+        console.log('UCM_DIAGNOSTIC_FOOD',JSON.stringify(summary));
+        if(records.length){records.slice(0,2).forEach((record,index)=>console.log(`UCM_DIAGNOSTIC_RECORD_${itemId}_${index}`,JSON.stringify(record).slice(0,7000)));break;}
       }
     }
   }catch(error){console.log('UCM_DIAGNOSTIC_ERROR',error.message);}
