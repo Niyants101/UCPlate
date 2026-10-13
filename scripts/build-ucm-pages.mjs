@@ -2,6 +2,15 @@ import {randomUUID} from 'node:crypto';
 import {getDashboard,getMenu,getAvailableDates} from '../ucm-menus.mjs';
 import {buildCampusSnapshot} from './build-campus-snapshot.mjs';
 
+const objectHasValues=value=>value&&typeof value==='object'&&Object.keys(value).length>0;
+function findNutritionRecords(value,path='root',out=[]){
+  if(!value||typeof value!=='object'||out.length>=8)return out;
+  if(objectHasValues(value.nutritionInfo))out.push({path,name:value.name||null,nutritionInfo:value.nutritionInfo,servingSizeValue:value.servingSizeValue??null});
+  if(Array.isArray(value)){value.forEach((entry,index)=>findNutritionRecords(entry,`${path}[${index}]`,out));return out;}
+  for(const [key,child] of Object.entries(value))if(child&&typeof child==='object')findNutritionRecords(child,`${path}.${key}`,out);
+  return out;
+}
+
 if(process.env.CI){
   try{
     const API='https://widget.api.eagle.bigzpoon.com';
@@ -21,20 +30,15 @@ if(process.env.CI){
         const items=await read(`${API}/menuitems?categoryId=${category._id||category.id}&isPreview=false&locationId=${location}&menuGroupId=${groupId}&userPreferences=${prefs}`);
         const item=(Array.isArray(items)?items:items?.menuItems||[]).find(row=>row?._id||row?.id);
         if(item){
-          console.log('UCM_DIAGNOSTIC_ITEM_KEYS',Object.keys(item).sort().join(','));
-          console.log('UCM_DIAGNOSTIC_ITEM_CALORIES',JSON.stringify(item.caloriesInfo??null));
+          console.log('UCM_DIAGNOSTIC_ITEM',item.name||null,JSON.stringify(item.caloriesInfo??null));
           const itemId=item._id||item.id;
           const response=await fetch(`${API}/raw-materials`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({menuId:itemId,fdaRounding:true,allergyIds:[],lifestyleChoiceIds:[],nutritionGoals:[],preferenceApplyStatus:false,skipCommonIngredients:[],locationId:location})});
           const body=await response.json();
           const raw=body?.data;
-          console.log('UCM_DIAGNOSTIC_RAW_TYPE',Array.isArray(raw)?'array':typeof raw);
-          console.log('UCM_DIAGNOSTIC_RAW_KEYS',Array.isArray(raw)&&raw[0]?Object.keys(raw[0]).sort().join(','):raw&&typeof raw==='object'?Object.keys(raw).sort().join(','):'none');
-          const sample=Array.isArray(raw)?raw.find(entry=>entry?.nutritionInfo)||raw[0]:raw;
-          if(sample){
-            console.log('UCM_DIAGNOSTIC_NUTRITIONINFO_TYPE',Array.isArray(sample.nutritionInfo)?'array':typeof sample.nutritionInfo);
-            console.log('UCM_DIAGNOSTIC_NUTRITIONINFO',JSON.stringify(sample.nutritionInfo??null).slice(0,7000));
-            console.log('UCM_DIAGNOSTIC_SERVING',JSON.stringify(sample.servingSizeValue??null));
-          }
+          const records=findNutritionRecords(raw);
+          console.log('UCM_DIAGNOSTIC_POPULATED_COUNT',records.length);
+          records.forEach((record,index)=>console.log(`UCM_DIAGNOSTIC_RECORD_${index}`,JSON.stringify(record).slice(0,7000)));
+          console.log('UCM_DIAGNOSTIC_RAW_SAMPLE',JSON.stringify(Array.isArray(raw)?raw.slice(0,2):raw).slice(0,9000));
         }
       }
     }
