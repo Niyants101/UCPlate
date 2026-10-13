@@ -10,19 +10,31 @@ const now=new Date();
 const pacificParts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
 const today=`${pacificParts.year}-${pacificParts.month}-${pacificParts.day}`;
 const currentMinutes=Number(pacificParts.hour)*60+Number(pacificParts.minute);
+const RETAIL=[
+  {id:'ucd-latitude-market',name:'Latitude Market',kind:'market',source:'https://housing.ucdavis.edu/dining/latitude-market/'},
+  {id:'ucd-sage-street',name:'Sage Street Market | Cafe',kind:'cafe',source:'https://housing.ucdavis.edu/dining/sage-street'},
+  {id:'ucd-spokes',name:'Spokes',kind:'restaurant',source:'https://housing.ucdavis.edu/dining/spokes/'},
+  {id:'ucd-gunrock',name:'The Gunrock',kind:'restaurant',source:'https://housing.ucdavis.edu/dining/the-gunrock/'},
+  {id:'ucd-scrubs',name:'Scrubs Cafe and Market',kind:'cafe',source:'https://housing.ucdavis.edu/dining/scrubs-cafe/'},
+  {id:'ucd-silo-market',name:'Silo Market',kind:'market',source:'https://housing.ucdavis.edu/dining/markets/silo-market/'},
+  {id:'ucd-residential-markets',name:'Residential Markets',kind:'market',source:'https://housing.ucdavis.edu/dining/markets/residential-markets/'},
+  {id:'ucd-peets-arc',name:"Peet's Coffee at the ARC",kind:'cafe',source:'https://housing.ucdavis.edu/dining/coffee/peets-coffee-at-the-arc'},
+  {id:'ucd-peets-silo',name:"Peet's Coffee at the Silo",kind:'cafe',source:'https://housing.ucdavis.edu/dining/coffee/peets-coffee-at-the-silo/'},
+  {id:'ucd-king-hall-coffee',name:'King Hall Coffee',kind:'cafe',source:'https://housing.ucdavis.edu/dining/coffee/king-hall-coffee/'},
+  {id:'ucd-coffee',name:'Other UC Davis Coffee Locations',kind:'cafe',source:'https://housing.ucdavis.edu/dining/coffee/'},
+  {id:'ucd-food-trucks',name:'UC Davis Food Trucks',kind:'restaurant',source:'https://housing.ucdavis.edu/dining/food-trucks/'}
+];
 
 function minutes(value){const [hour,minute]=String(value).split(':').map(Number);return hour*60+minute;}
 function isDetailed(meal){return Boolean(meal?.items?.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein)&&item?.nutritionStatus==='available'));}
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown'}))};}
+function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],source:item.source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||null}))};}
 function chooseCurrentMeal(location,date){
   if(date!==today||!location?.meals?.length)return null;
   const period=(location.schedule||[]).find(window=>currentMinutes>=minutes(window.start)&&currentMinutes<minutes(window.end));
-  if(period){
-    const direct=location.meals.find(meal=>meal.name.toLowerCase()===period.name.toLowerCase());
-    if(direct)return direct;
-  }
+  if(period){const direct=location.meals.find(meal=>meal.name.toLowerCase()===period.name.toLowerCase());if(direct)return direct;}
   return null;
 }
+function sourceOnly(location){return {...location,sourceName:location.name,status:'empty',message:'Official UC Davis dining location. UC Davis does not publish this retail menu through the residential nutrition feed used for item-level nutrition.',schedule:null,meals:[],detailPath:null,bulk:null};}
 
 const dates=(await getAvailableDates()).filter(date=>date>=today).sort();
 if(!dates.length)throw new Error('UC Davis Dining did not publish any current or future menu dates.');
@@ -42,6 +54,7 @@ for(const date of dates){
     }
     return {id:location.id,name:location.name,sourceName:location.sourceName||location.name,kind:location.kind,status:location.status,message:location.message,source:location.source,schedule:location.schedule,meals:(location.meals||[]).map(shortMeal),detailPath,bulk:bulk?{meal:bulk.meal,mode:bulk.mode,status:bulk.status}:null};
   });
+  locations.push(...RETAIL.map(sourceOnly));
   generatedDates.set(date,{campusId:CAMPUS_ID,adapter:ADAPTER_ID,date,fetchedAt:dashboard.fetchedAt,locations});
 }
 

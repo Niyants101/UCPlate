@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'feature/**'
+      - 'fix/**'
   pull_request:
 
 permissions:
@@ -34,11 +35,13 @@ jobs:
           node --check ucb-menus.mjs
           node --check ucd-menus.mjs
           node --check uci-menus.mjs
+          node --check uci-retail.mjs
           node --check ucla-menus.mjs
           node --check ucr-menus.mjs
           node --check ucsb-menus.mjs
           node --check ucm-menus.mjs
           node --check ucsf-menus.mjs
+          node --check scripts/audit-campus-data.mjs
           node --check scripts/build-ucsd-pages.mjs
           node --check scripts/build-ucb-pages.mjs
           node --check scripts/build-ucd-pages.mjs
@@ -62,3 +65,5 @@ jobs:
         run: node scripts/build-ucm-pages.mjs
       - name: Smoke build UCSF snapshot
         run: node scripts/build-ucsf-pages.mjs
+      - name: Audit campus menu data
+        run: node scripts/audit-campus-data.mjs

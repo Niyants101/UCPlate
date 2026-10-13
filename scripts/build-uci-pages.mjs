@@ -1,5 +1,6 @@
 import {mkdir,rm,writeFile} from 'node:fs/promises';
 import {getDashboard,getAvailableDates} from '../uci-menus.mjs';
+import {getUciRetailLocations} from '../uci-retail.mjs';
 
 const CAMPUS_ID='uci';
 const ADAPTER_ID='uci-mydininghub';
@@ -13,12 +14,13 @@ const currentMinutes=Number(pacificParts.hour)*60+Number(pacificParts.minute);
 
 function minutes(value){const [hour,minute]=String(value).split(':').map(Number);return hour*60+minute;}
 function isDetailed(meal){return Boolean(meal?.items?.some(item=>Number.isFinite(item?.calories)&&Number.isFinite(item?.protein)&&item?.nutritionStatus==='available'));}
-function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown'}))};}
+function shortMeal(meal){return {name:meal.name,items:(meal.items||[]).map(item=>({name:item.name,section:item.section||'',category:item.category||'',diet:item.diet||'unknown',allergens:item.allergens||[],source:item.source||null,nutritionSource:item.nutritionSource||null,nutritionStatus:item.nutritionStatus||null}))};}
 function chooseCurrentMeal(location,date){
   if(date!==today||!location?.meals?.length)return null;
-  const period=(location.schedule||[]).find(window=>currentMinutes>=minutes(window.start)&&currentMinutes<minutes(window.end));
+  if(!Array.isArray(location.schedule))return location.meals[0]||null;
+  const period=location.schedule.find(window=>currentMinutes>=minutes(window.start)&&currentMinutes<minutes(window.end));
   if(!period)return null;
-  return location.meals.find(meal=>meal.name.toLowerCase()===period.name.toLowerCase())||null;
+  return location.meals.find(meal=>meal.name.toLowerCase()===period.name.toLowerCase())||location.meals[0]||null;
 }
 
 const dates=(await getAvailableDates()).filter(date=>date>=today).sort();
@@ -26,8 +28,9 @@ if(!dates.length)throw new Error('UC Irvine Dining did not publish any current o
 const generatedDates=new Map(),generatedDetails=new Map();
 
 for(const date of dates){
-  const dashboard=await getDashboard(date);
-  const locations=dashboard.locations.map(location=>{
+  const dashboard=await getDashboard(date),retail=await getUciRetailLocations(date);
+  const combined=[...dashboard.locations,...retail];
+  const locations=combined.map(location=>{
     let detailPath=null,bulk=null;
     if(location.status==='live'&&location.meals?.length){
       const current=chooseCurrentMeal(location,date);
